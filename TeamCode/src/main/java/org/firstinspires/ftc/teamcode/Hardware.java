@@ -1,8 +1,11 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.hardware.bosch.BNO055IMU;
+import com.qualcomm.robotcore.hardware.ColorRangeSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.Servo;
 
 public class Hardware {
 
@@ -10,6 +13,11 @@ public class Hardware {
     DcMotor leftRear   = null;
     DcMotor rightFront = null;
     DcMotor rightRear  = null;
+
+    Servo servo  = null;
+
+    BNO055IMU imu = null;
+
 
     public void init(HardwareMap hardwareMap) {
         leftFront = hardwareMap.get(DcMotor.class, "leftFront");
