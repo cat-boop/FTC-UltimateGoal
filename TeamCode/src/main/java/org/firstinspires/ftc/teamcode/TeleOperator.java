@@ -8,6 +8,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 public class TeleOperator extends LinearOpMode {
 
     Hardware robot = new Hardware();
+    Gyroscope gyroscope = new Gyroscope();
 
     @Override
     public void runOpMode() {
@@ -15,6 +16,7 @@ public class TeleOperator extends LinearOpMode {
         telemetry.update();
 
         robot.init(hardwareMap);
+        gyroscope.init(hardwareMap);
 
         telemetry.addData("Status:", "Initialized");
         telemetry.update();
@@ -26,7 +28,9 @@ public class TeleOperator extends LinearOpMode {
             telemetry.addData("Right stick x value:", gamepad1.right_stick_x);
             telemetry.addData("Right stick y value:", gamepad1.right_stick_y);
             telemetry.addData("Left stick y value:", gamepad1.left_stick_y);
+            telemetry.addData("Heading:", gyroscope.getAngle());
             telemetry.update();
         }
+        robot.setPower(0, 0, 0);
     }
 }
