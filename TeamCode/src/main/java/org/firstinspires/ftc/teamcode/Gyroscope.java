@@ -13,7 +13,8 @@ import java.util.Locale;
 
 public class Gyroscope {
 
-    BNO055IMU imu;
+    private BNO055IMU imu;
+    private PID pid = new PID(0.01, 0, 0);
 
     public void init(HardwareMap hardwareMap) {
         BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
@@ -38,4 +39,28 @@ public class Gyroscope {
         return imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES).firstAngle;
     }
 
+    public double turnTo(double current_angle, double target_angle) {
+        double error = format(target_angle, current_angle);
+        return pid.apply(error);
+    }
+
+    public double format(double valueOne, double valueTwo) {
+        return clamp_180(to_360(valueOne - clamp_360(valueTwo)));
+    }
+
+    private double clamp_360(double angle) {
+        if (angle < 0) angle += 360;
+        return angle;
+    }
+
+    // > 0 and < 360
+    private double to_360(double angle) {
+        return angle % 360;
+    }
+
+    //[0;360] -> [-180;180]
+    private double clamp_180(double angle) {
+        if (angle > 180) return angle - 360;
+        return angle;
+    }
 }
