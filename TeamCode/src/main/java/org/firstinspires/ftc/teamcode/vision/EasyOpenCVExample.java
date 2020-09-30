@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode;/*
+package org.firstinspires.ftc.teamcode.vision;/*
  * Copyright (c) 2020 OpenFTC Team
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
