@@ -31,10 +31,10 @@ public class Hardware {
 
     public void setPower(double move, double turn, double sideways) {
         double[] powers = new double[4];
-        powers[0] = move + turn + sideways;
-        powers[1] = move + turn - sideways;
-        powers[2] = move - turn - sideways;
-        powers[3] = move - turn + sideways;
+        powers[0] = -move + turn + sideways;
+        powers[1] = -move + turn - sideways;
+        powers[2] = -move - turn - sideways;
+        powers[3] = -move - turn + sideways;
 
         leftFront.setPower(powers[0]);
         leftRear.setPower(powers[1]);
