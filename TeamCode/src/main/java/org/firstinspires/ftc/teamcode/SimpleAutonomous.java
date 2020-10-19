@@ -24,7 +24,7 @@ public class SimpleAutonomous extends LinearOpMode {
 
         for (int i = 0; i < 4 && !isStopRequested(); i++) {
             //движение прямо
-            driveForTime(2, 0.5, 0, 0);
+            driveForTime(2, 0.5);
 
             //поворот на 90 градусов
             turnForTime(90 * (i + 1));
@@ -37,10 +37,15 @@ public class SimpleAutonomous extends LinearOpMode {
     }
 
 
-    public void driveForTime(double time, double move, double turn, double sideways) {
+    public void driveForTime(double time, double move) {
+        double current_angle = gyroscope.getAngle();
         time_start = timer.seconds();
+
         while (timer.seconds() - time_start < time && opModeIsActive()) {
-            hardware.setPower(move, turn, sideways);
+            double turn = gyroscope.turnTo(current_angle, 0);
+            current_angle = gyroscope.getAngle();
+
+            hardware.setPower(move, turn, 0);
             telemetry.addData("Current time", timer.seconds());
             telemetry.update();
         }
