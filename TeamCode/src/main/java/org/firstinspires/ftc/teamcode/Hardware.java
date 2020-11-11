@@ -17,7 +17,7 @@ public class Hardware {
         rightFront = hardwareMap.get(DcMotor.class, "rightFront");
         rightRear = hardwareMap.get(DcMotor.class, "rightRear");
 
-        leftRear.setDirection(DcMotorSimple.Direction.REVERSE);;
+        leftRear.setDirection(DcMotorSimple.Direction.REVERSE);
     }
 
     public void setPower(double move, double turn, double sideways) {

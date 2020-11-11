@@ -21,7 +21,7 @@ public class AS5600 extends LinearOpMode {
         while (opModeIsActive()) {
             positionMagneticEncoder = magneticEncoder.getVoltage();
 
-            telemetry.addData("Many shit:", positionMagneticEncoder);
+            telemetry.addData("Position of magnetic encoder:", positionMagneticEncoder);
             telemetry.update();
         }
     }
