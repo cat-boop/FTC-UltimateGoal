@@ -11,40 +11,29 @@ public class MotorTest extends LinearOpMode {
 
     DcMotor test_motor = null;
 
-    static final double     COUNTS_PER_MOTOR        = 288;
-    static final double     COUNTS_PER_ROTATION    =   4;
-
     @Override
     public void runOpMode() {
-        test_motor = hardwareMap.get(DcMotor.class, "test_motor");
+        //right_bumper
 
-        test_motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        test_motor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-
+        test_motor = hardwareMap.get(DcMotor.class, "motor1");
 
         waitForStart();
 
-        encoderDrive(0.1, 1);
-    }
+        while (opModeIsActive()){
+            if (gamepad1.right_trigger > 0){
 
-    public void encoderDrive(double speed, double number_of_rotation) {
-        int newTarget;
-        if (opModeIsActive()) {
-            newTarget = test_motor.getCurrentPosition() + (int)(number_of_rotation * COUNTS_PER_MOTOR);
-            test_motor.setTargetPosition(newTarget);
+                test_motor.setPower(gamepad1.right_trigger);
+            }
+            if (gamepad1.left_trigger > 0 ){
 
-            test_motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-
-            test_motor.setPower(Math.abs(speed));
-
-            while (opModeIsActive() && test_motor.isBusy()) {
-                telemetry.addData("Current position", test_motor.getCurrentPosition());
-                telemetry.update();
+                test_motor.setPower((-gamepad1.left_trigger));
             }
 
-            test_motor.setPower(0);
+            telemetry.addData("right_trigger" , gamepad1.right_trigger );
+            telemetry.addData("left_trigger" , gamepad1.left_trigger );
 
-            test_motor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            telemetry.update();
         }
+
     }
 }
