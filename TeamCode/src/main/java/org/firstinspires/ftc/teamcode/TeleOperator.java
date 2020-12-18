@@ -33,15 +33,9 @@ public class TeleOperator extends LinearOpMode {
             //robot.setPower(gamepad1.right_stick_y, gamepad1.right_stick_x, gamepad1.left_stick_x);
             robot.setPower(-gamepad1.right_stick_y, -gamepad1.left_stick_x, -gamepad1.right_stick_x);
 
-            if (gamepad1.right_bumper) {
-                servo_position = Math.min(MAX_POS, servo_position + INCREMENT);
-                sleep(50);
-            }
-            else if (gamepad1.left_bumper) {
-                servo_position = Math.max(MIN_POS, servo_position - INCREMENT);
-                sleep(50);
-            }
-            servo.setPosition(servo_position);
+            if (gamepad1.right_bumper) robot.intakeOn();
+            if (gamepad1.left_bumper) robot.intakeOff();
+
 
             telemetry.addData("Right stick x value:", gamepad1.right_stick_x);
             telemetry.addData("Right stick y value:", gamepad1.right_stick_y);

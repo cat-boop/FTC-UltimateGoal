@@ -11,14 +11,25 @@ public class Hardware {
     DcMotor rightFront = null;
     DcMotor rightRear  = null;
 
+    DcMotor intakeMajor = null;
+    DcMotor intakeMinor = null;
+
     public void init(HardwareMap hardwareMap) {
         leftFront = hardwareMap.get(DcMotor.class, "leftFront");
         leftRear = hardwareMap.get(DcMotor.class, "leftRear");
         rightFront = hardwareMap.get(DcMotor.class, "rightFront");
         rightRear = hardwareMap.get(DcMotor.class, "rightRear");
 
+        //intakeMajor = hardwareMap.get(DcMotor.class, "intakeMajor");
+        //intakeMinor = hardwareMap.get(DcMotor.class, "intakeMinor");
+
         leftFront.setDirection(DcMotorSimple.Direction.REVERSE);
         leftRear.setDirection(DcMotorSimple.Direction.REVERSE);
+
+        leftFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        leftRear.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        rightFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        rightRear.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         rightFront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         rightRear.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -58,5 +69,15 @@ public class Hardware {
             }
         }
         return powers;
+    }
+
+    public void intakeOn() {
+        intakeMajor.setPower(0.8);
+        intakeMinor.setPower(1);
+    }
+
+    public void intakeOff() {
+        intakeMajor.setPower(0);
+        intakeMinor.setPower(0);
     }
 }
