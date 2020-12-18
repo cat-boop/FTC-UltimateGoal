@@ -30,14 +30,11 @@
 package org.firstinspires.ftc.teamcode;
 
 import java.lang.Math;
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
+
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
-
-import org.firstinspires.ftc.robotcontroller.external.samples.HardwarePushbot;
 
 /**
  * This file illustrates the concept of driving a path based on encoder counts.
@@ -72,22 +69,18 @@ public class PushbotAutoDriveByEncoder_Linear extends LinearOpMode {
 
     /* Declare OpMode members. */
     Hardware robot   = new Hardware();   // Use a Pushbot's hardware
+    Gyroscope gyroscope = new Gyroscope();
     private ElapsedTime     runtime = new ElapsedTime();
 
     //static final double     COUNTS_PER_MOTOR_REV    = 1440 ;    // eg: TETRIX Motor Encoder
     static final double     COUNTS_PER_MOTOR_REV    = 2400 ;    // eg:
 
-    //static final double     DRIVE_GEAR_REDUCTION    = 2.0 ;     // This is < 1.0 if geared UP
-    static final double     DRIVE_GEAR_REDUCTION    = 1.69 ;     // This is < 1.0 if geared UP
+   // static final double     LENGTH_PER_TIC = 0.003065395125;
+    static final double     LENGTH_PER_TIC = 0.0030326975625;
 
     static final double     WHEEL_DIAMETER_INCHES   = 1.9687 ;     // For figuring circumference
-    static final double     COUNTS_PER_INCH         = (COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION) /
-                                                      (WHEEL_DIAMETER_INCHES * 3.1415);
 
-    static final double     COUNTS_PER_TICKS          = (COUNTS_PER_MOTOR_REV) / (WHEEL_DIAMETER_INCHES * Math.PI);
-
-    static final double     DRIVE_SPEED             = 0.3;
-    static final double     TURN_SPEED              = 0.5;
+    static final double     COUNTS_PER_INCH = (COUNTS_PER_MOTOR_REV) / (WHEEL_DIAMETER_INCHES * Math.PI);
 
     @Override
     public void runOpMode() {
@@ -97,9 +90,10 @@ public class PushbotAutoDriveByEncoder_Linear extends LinearOpMode {
          * The init() method of the hardware class does all the work here
          */
         robot.init(hardwareMap);
+        gyroscope.init(hardwareMap);
 
         // Send telemetry message to signify robot waiting;
-        telemetry.addData("Status", "Resetting Encoders");    //
+        telemetry.addData("Status", "Initialized");    //
         telemetry.update();
 
 
@@ -112,7 +106,9 @@ public class PushbotAutoDriveByEncoder_Linear extends LinearOpMode {
         // Wait for the game to start (driver presses PLAY)
         waitForStart();
 
-        driveByTicks(0.1, 5);
+        driveByTicks(0.3, -24);
+        driveByTicks(0.3, 30);
+        driveByTicks(0.3, -30);
         // Step through each leg of the path,
         // Note: Reverse movement is obtained by setting a negative distance (not speed)
         //encoderDrive(DRIVE_SPEED,  20,  48, 15);  // S1: Forward 47 Inches with 5 Sec timeout
@@ -123,71 +119,13 @@ public class PushbotAutoDriveByEncoder_Linear extends LinearOpMode {
         telemetry.update();
     }
 
-    /*
-     *  Method to perform a relative move, based on encoder counts.
-     *  Encoders are not reset as the move is based on the current position.
-     *  Move will stop if any of three conditions occur:
-     *  1) Move gets to the desired position
-     *  2) Move runs out of time
-     *  3) Driver stops the opmode running.
-     */
-
-    public void encoderDrive(double speed,
-                             double leftInches, double rightInches,
-                             double timeoutS) {
-        int newLeftTarget;
-        int newRightTarget;
-
-        // Ensure that the opmode is still active
-        if (opModeIsActive()) {
-
-            // Determine new target position, and pass to motor controller
-            newLeftTarget = -robot.rightFront.getCurrentPosition() + (int)(leftInches * COUNTS_PER_INCH);
-            //newRightTarget = robot.rightDrive.getCurrentPosition() + (int)(rightInches * COUNTS_PER_INCH);
-
-            robot.rightFront.setTargetPosition(newLeftTarget);
-            //robot.rightDrive.setTargetPosition(newRightTarget);
-
-            // Turn On RUN_TO_POSITION
-            robot.rightFront.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            //robot.rightDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-
-            // reset the timeout time and start motion.
-            runtime.reset();
-            robot.setPower(Math.abs(speed), 0, 0);
-            //robot.rightDrive.setPower(Math.abs(speed));
-
-            // keep looping while we are still active, and there is time left, and both motors are running.
-            // Note: We use (isBusy() && isBusy()) in the loop test, which means that when EITHER motor hits
-            // its target position, the motion will stop.  This is "safer" in the event that the robot will
-            // always end the motion as soon as possible.
-            // However, if you require that BOTH motors have finished their moves before the robot continues
-            // onto the next step, use (isBusy() || isBusy()) in the loop test.
-            while (opModeIsActive() &&
-                   (runtime.seconds() < timeoutS) &&
-                   (robot.rightFront.isBusy() /* && robot.rightDrive.isBusy() */ )) {
-
-                // Display it for the driver.
-                telemetry.addData("Path1",  "Running to %7d", newLeftTarget /*,  newRightTarget */);
-                telemetry.addData("Path2",  "Running at %7d",
-                                            -robot.rightFront.getCurrentPosition() /*,
-                                            robot.rightDrive.getCurrentPosition() */ );
-                telemetry.update();
-            }
-
-            // Stop all motion;
-            robot.setPower(0, 0, 0);
-;
-
-            //  sleep(250);   // optional pause after each move
-        }
-    }
-
     public void driveByTicks(double speed, int inches) {
-        int target_position = robot.rightFront.getCurrentPosition() + inches * (int)COUNTS_PER_TICKS;
+        //int target_position = robot.rightFront.getCurrentPosition() + (int) (inches/LENGTH_PER_TIC);
+        int target_position = robot.rightRear.getCurrentPosition() + (int) (inches/LENGTH_PER_TIC);
+        int sign = target_position / Math.abs(target_position);
 
-        robot.rightFront.setTargetPosition(target_position);
-        //robot.rightDrive.setTargetPosition(newRightTarget);
+        //robot.rightFront.setTargetPosition(target_position);
+        robot.rightRear.setTargetPosition(target_position);
 
         // Turn On RUN_TO_POSITION
         //robot.rightFront.setMode(DcMotor.RunMode.RUN_TO_POSITION);
@@ -195,20 +133,24 @@ public class PushbotAutoDriveByEncoder_Linear extends LinearOpMode {
 
         // reset the timeout time and start motion.
         runtime.reset();
-        robot.setPower(speed, 0, 0);
+        robot.setPower(speed * sign, 0, 0);
 
         while (opModeIsActive() &&
-                (-robot.rightFront.getCurrentPosition() < target_position /* && robot.rightDrive.isBusy() */ )) {
+                (Math.abs(robot.rightRear.getCurrentPosition()) < target_position * sign /* && robot.rightDrive.isBusy() */ )) {
 
             // Display it for the driver.
             telemetry.addData("Path1",  "Running to %7d", target_position /*,  newRightTarget */);
             telemetry.addData("Path2",  "Running at %7d",
-                    -robot.rightFront.getCurrentPosition() /*,
+                    Math.abs(robot.rightRear.getCurrentPosition()) /*,
                                             robot.rightDrive.getCurrentPosition() */ );
+            //telemetry.addData("")
+            telemetry.addData("angle", gyroscope.getAngle());
             telemetry.update();
         }
 
         // Stop all motion;
         robot.setPower(0, 0, 0);
+        robot.rightRear.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        robot.rightRear.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
     }
 }
