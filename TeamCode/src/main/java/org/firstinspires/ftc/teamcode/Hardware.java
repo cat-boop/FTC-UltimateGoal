@@ -6,13 +6,13 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 
 public class Hardware {
 
-    DcMotor leftFront  = null;
-    DcMotor leftRear   = null;
-    DcMotor rightFront = null;
-    DcMotor rightRear  = null;
+    DcMotor leftFront  = null; // 3 motor control hub
+    DcMotor leftRear   = null; // 2 motor control hub
+    DcMotor rightFront = null; // 1 motor control hub
+    DcMotor rightRear  = null; // 0 motor control hub
 
-    DcMotor intakeMajor = null;
-    DcMotor intakeMinor = null;
+    DcMotor intakeMajor = null; // 0 expansion hub
+    DcMotor intakeMinor = null; // 1 expansion hub
 
     public void init(HardwareMap hardwareMap) {
         leftFront = hardwareMap.get(DcMotor.class, "leftFront");
@@ -20,11 +20,13 @@ public class Hardware {
         rightFront = hardwareMap.get(DcMotor.class, "rightFront");
         rightRear = hardwareMap.get(DcMotor.class, "rightRear");
 
-        //intakeMajor = hardwareMap.get(DcMotor.class, "intakeMajor");
-        //intakeMinor = hardwareMap.get(DcMotor.class, "intakeMinor");
+        intakeMajor = hardwareMap.get(DcMotor.class, "intakeMajor");
+        intakeMinor = hardwareMap.get(DcMotor.class, "intakeMinor");
 
         leftFront.setDirection(DcMotorSimple.Direction.REVERSE);
         leftRear.setDirection(DcMotorSimple.Direction.REVERSE);
+
+        intakeMajor.setDirection(DcMotorSimple.Direction.REVERSE);
 
         leftFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         leftRear.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
