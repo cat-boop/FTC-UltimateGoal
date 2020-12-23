@@ -42,6 +42,7 @@ public class LocalizationTest extends LinearOpMode {
             telemetry.addData("y", poseEstimate.getY());
             telemetry.addData("heading", poseEstimate.getHeading());
             telemetry.addData("heading imu", drive.gyroscope.getAngle());
+            telemetry.addData("y multiplier", (0.964356761824539414 + 1.041471336588096) / 2);
             telemetry.update();
         }
     }
