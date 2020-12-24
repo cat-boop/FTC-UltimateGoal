@@ -3,8 +3,15 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.Servo;
 
 public class Hardware {
+
+    public final double MINOR_MIN = 0, MINOR_MAX = 0.3;
+    public final double MAJOR_MIN = 0, MAJOR_MAX = 1;
+
+    Servo servoMajor = null; // 1 control hub
+    Servo servoMinor = null; // 0 control hub
 
     DcMotor leftFront  = null; // 3 motor control hub
     DcMotor leftRear   = null; // 2 motor control hub
@@ -23,6 +30,14 @@ public class Hardware {
         intakeMajor = hardwareMap.get(DcMotor.class, "intakeMajor");
         intakeMinor = hardwareMap.get(DcMotor.class, "intakeMinor");
 
+        servoMajor = hardwareMap.get(Servo.class, "servoMajor");
+        servoMinor = hardwareMap.get(Servo.class, "servoMinor");
+
+        servoMajor.setPosition(MAJOR_MIN);
+        servoMinor.setPosition(MINOR_MIN);
+
+
+
         leftFront.setDirection(DcMotorSimple.Direction.REVERSE);
         leftRear.setDirection(DcMotorSimple.Direction.REVERSE);
 
@@ -33,6 +48,18 @@ public class Hardware {
         rightFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         rightRear.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
+        rightFront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        rightRear.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        leftFront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        leftRear.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+        rightFront.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        rightRear.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        leftFront.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        leftRear.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+    }
+
+    public void reset() {
         rightFront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         rightRear.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         leftFront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -71,15 +98,5 @@ public class Hardware {
             }
         }
         return powers;
-    }
-
-    public void intakeOn() {
-        intakeMajor.setPower(0.8);
-        intakeMinor.setPower(1);
-    }
-
-    public void intakeOff() {
-        intakeMajor.setPower(0);
-        intakeMinor.setPower(0);
     }
 }
