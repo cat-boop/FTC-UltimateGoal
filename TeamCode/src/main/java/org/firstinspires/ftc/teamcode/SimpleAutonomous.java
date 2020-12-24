@@ -2,38 +2,35 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 @Autonomous()
 public class SimpleAutonomous extends LinearOpMode {
 
-    Hardware hardware = new Hardware();
+    Hardware robot = new Hardware();
     Gyroscope gyroscope = new Gyroscope();
     ElapsedTime timer = new ElapsedTime();
+
+    static final double     LENGTH_PER_TIC = 0.0030326975625;
 
     double time_start;
 
     @Override
     public void runOpMode() {
-        hardware.init(hardwareMap);
+
+        robot.init(hardwareMap);
         gyroscope.init(hardwareMap);
+
+        telemetry.addData("Status", "initialize");
+        telemetry.addData("Status", "wait for start");
+        telemetry.update();
 
         waitForStart();
         timer.reset();
 
-
-        for (int i = 0; i < 4 && !isStopRequested(); i++) {
-            //движение прямо
-            driveForTime(2, 0.5);
-
-            //поворот на 90 градусов
-            turnForTime(90 * (i + 1));
-
-            sleep(200);
-        }
-
-
-        hardware.setPower(0, 0, 0);
+        turnForTime(90);
+        robot.setPower(0, 0, 0);
     }
 
 
@@ -45,11 +42,11 @@ public class SimpleAutonomous extends LinearOpMode {
             double turn = gyroscope.turnTo(current_angle, 0);
             current_angle = gyroscope.getAngle();
 
-            hardware.setPower(move, turn, 0);
+            robot.setPower(move, turn, 0);
             telemetry.addData("Current time", timer.seconds());
             telemetry.update();
         }
-        hardware.setPower(0, 0, 0);
+        robot.setPower(0, 0, 0);
     }
 
     public void turnForTime(double target_angle) {
@@ -64,7 +61,7 @@ public class SimpleAutonomous extends LinearOpMode {
 
             double power = gyroscope.turnTo(current_angle, target_angle);
             current_angle = gyroscope.getAngle();
-            hardware.setPower(0, power, 0);
+            robot.setPower(0, power, 0);
 
             telemetry.addData("Current angle", current_angle);
             telemetry.addData("Time at target", time_at_target.seconds());
@@ -72,6 +69,38 @@ public class SimpleAutonomous extends LinearOpMode {
             telemetry.addData("Power", power);
             telemetry.update();
         }
-        hardware.setPower(0, 0, 0);
+        robot.setPower(0, 0, 0);
+    }
+
+    public void driveByTicks(double speed, int inches) {
+        //int target_position = robot.rightFront.getCurrentPosition() + (int) (inches/LENGTH_PER_TIC);
+        int target_position = robot.rightRear.getCurrentPosition() + (int) (inches / LENGTH_PER_TIC);
+        int sign = target_position / Math.abs(target_position);
+
+        //robot.rightFront.setTargetPosition(target_position);
+        robot.rightRear.setTargetPosition(target_position);
+
+        // Turn On RUN_TO_POSITION
+        //robot.rightFront.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        //robot.rightDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+        robot.setPower(speed * sign, 0, 0);
+
+        while (opModeIsActive() &&
+                (Math.abs(robot.rightRear.getCurrentPosition()) < target_position * sign /* && robot.rightDrive.isBusy() */ )) {
+
+            // Display it for the driver.
+            telemetry.addData("Path1",  "Running to %7d", target_position /*,  newRightTarget */);
+            telemetry.addData("Path2",  "Running at %7d",
+                    Math.abs(robot.rightRear.getCurrentPosition()) /*,
+                                            robot.rightDrive.getCurrentPosition() */ );
+            //telemetry.addData("")
+            telemetry.addData("angle", gyroscope.getAngle());
+            telemetry.update();
+        }
+
+        // Stop all motion;
+        robot.setPower(0, 0, 0);
+        robot.reset();
     }
 }

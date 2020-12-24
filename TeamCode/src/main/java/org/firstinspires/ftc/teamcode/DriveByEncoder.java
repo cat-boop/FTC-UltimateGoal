@@ -63,24 +63,21 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@TeleOp(name="Pushbot: Auto Drive By Encoder", group="Pushbot")
+@TeleOp(name="Drive By Encoder")
 //@Disabled
-public class PushbotAutoDriveByEncoder_Linear extends LinearOpMode {
+public class DriveByEncoder extends LinearOpMode {
 
     /* Declare OpMode members. */
     Hardware robot   = new Hardware();   // Use a Pushbot's hardware
     Gyroscope gyroscope = new Gyroscope();
     private ElapsedTime     runtime = new ElapsedTime();
 
-    //static final double     COUNTS_PER_MOTOR_REV    = 1440 ;    // eg: TETRIX Motor Encoder
     static final double     COUNTS_PER_MOTOR_REV    = 2400 ;    // eg:
 
-   // static final double     LENGTH_PER_TIC = 0.003065395125;
     static final double     LENGTH_PER_TIC = 0.0030326975625;
 
-    static final double     WHEEL_DIAMETER_INCHES   = 1.9687 ;     // For figuring circumference
-
-    static final double     COUNTS_PER_INCH = (COUNTS_PER_MOTOR_REV) / (WHEEL_DIAMETER_INCHES * Math.PI);
+    //static final double     WHEEL_DIAMETER_INCHES   = 1.1614173228346456692913385826772 * 2;     // For figuring circumference
+    //static final double     COUNTS_PER_INCH = (COUNTS_PER_MOTOR_REV) / (WHEEL_DIAMETER_INCHES * Math.PI);
 
     @Override
     public void runOpMode() {
@@ -106,9 +103,9 @@ public class PushbotAutoDriveByEncoder_Linear extends LinearOpMode {
         // Wait for the game to start (driver presses PLAY)
         waitForStart();
 
-        driveByTicks(0.3, -24);
-        driveByTicks(0.3, 30);
-        driveByTicks(0.3, -30);
+        driveByTicks(0.1, 20, 40);
+        //driveByTicks(0.3, 30);
+        //driveByTicks(0.3, -30);
         // Step through each leg of the path,
         // Note: Reverse movement is obtained by setting a negative distance (not speed)
         //encoderDrive(DRIVE_SPEED,  20,  48, 15);  // S1: Forward 47 Inches with 5 Sec timeout
@@ -119,30 +116,37 @@ public class PushbotAutoDriveByEncoder_Linear extends LinearOpMode {
         telemetry.update();
     }
 
-    public void driveByTicks(double speed, int inches) {
-        //int target_position = robot.rightFront.getCurrentPosition() + (int) (inches/LENGTH_PER_TIC);
-        int target_position = robot.rightRear.getCurrentPosition() + (int) (inches/LENGTH_PER_TIC);
-        int sign = target_position / Math.abs(target_position);
+    public void driveByTicks(double speed, double x, double y) {
+        int target_position_x = robot.leftRear.getCurrentPosition() + (int) (x / LENGTH_PER_TIC);
 
-        //robot.rightFront.setTargetPosition(target_position);
-        robot.rightRear.setTargetPosition(target_position);
+        int target_left = robot.rightRear.getCurrentPosition() + (int) (y / LENGTH_PER_TIC);
+        int target_right = robot.rightFront.getCurrentPosition() + (int) (y / LENGTH_PER_TIC);
 
-        // Turn On RUN_TO_POSITION
-        //robot.rightFront.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        //robot.rightDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        int sign_x = target_position_x / Math.abs(target_position_x);
+        int sign_y = target_left / Math.abs(target_left);
 
-        // reset the timeout time and start motion.
-        runtime.reset();
-        robot.setPower(speed * sign, 0, 0);
+        double y_multiplier = (y >= x ? 1 : x / y);
+        double x_multiplier = (x >= y ? 1 : y / x);
+
+        robot.rightRear.setTargetPosition(target_left);
+        robot.rightFront.setTargetPosition(target_right);
+        robot.leftRear.setTargetPosition(target_position_x);
+
+        telemetry.addData("sign y", sign_y);
+        telemetry.addData("y_multiplier", y_multiplier);
+        telemetry.update();
+
+        robot.setPower(speed * sign_y * y_multiplier, 0, speed * sign_x * x_multiplier);
 
         while (opModeIsActive() &&
-                (Math.abs(robot.rightRear.getCurrentPosition()) < target_position * sign /* && robot.rightDrive.isBusy() */ )) {
+                (Math.abs(robot.rightRear.getCurrentPosition()) < target_left * sign_y) &&
+                (Math.abs(robot.rightFront.getCurrentPosition()) < target_right * sign_y) &&
+                (Math.abs(robot.rightRear.getCurrentPosition()) < target_position_x * sign_x)) {
 
             // Display it for the driver.
-            telemetry.addData("Path1",  "Running to %7d", target_position /*,  newRightTarget */);
-            telemetry.addData("Path2",  "Running at %7d",
-                    Math.abs(robot.rightRear.getCurrentPosition()) /*,
-                                            robot.rightDrive.getCurrentPosition() */ );
+            telemetry.addData("Path1",  "Running to x%7d  y%7d", target_position_x, target_left);
+            telemetry.addData("Path2",  "Running at %7d %7d %7d",
+                    robot.rightRear.getCurrentPosition(), robot.rightFront.getCurrentPosition(), robot.leftRear.getCurrentPosition());
             //telemetry.addData("")
             telemetry.addData("angle", gyroscope.getAngle());
             telemetry.update();
