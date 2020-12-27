@@ -31,10 +31,13 @@ package org.firstinspires.ftc.teamcode;
 
 import java.lang.Math;
 
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
+
+import org.firstinspires.ftc.teamcode.vision.Camera;
 
 /**
  * This file illustrates the concept of driving a path based on encoder counts.
@@ -63,19 +66,22 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@TeleOp(name="Drive By Encoder")
+@Autonomous(name="Drive By Encoder")
 //@Disabled
 public class DriveByEncoder extends LinearOpMode {
 
     /* Declare OpMode members. */
     Hardware robot   = new Hardware();   // Use a Pushbot's hardware
     Gyroscope gyroscope = new Gyroscope();
+    Camera camera = new Camera();
     private ElapsedTime     runtime = new ElapsedTime();
 
     static final double     COUNTS_PER_MOTOR_REV    = 2400 ;    // eg:
 
     static final double     LENGTH_PER_TIC = 0.0030326975625;
 
+    int numberOfNone = 0, numberOfOne = 0, numberOfFour = 0;
+    final double DRIVE_SPEED = 0.3;
     //static final double     WHEEL_DIAMETER_INCHES   = 1.1614173228346456692913385826772 * 2;     // For figuring circumference
     //static final double     COUNTS_PER_INCH = (COUNTS_PER_MOTOR_REV) / (WHEEL_DIAMETER_INCHES * Math.PI);
 
@@ -86,62 +92,125 @@ public class DriveByEncoder extends LinearOpMode {
          * Initialize the drive system variables.
          * The init() method of the hardware class does all the work here
          */
+        msStuckDetectStop = 2500;
         robot.init(hardwareMap);
         gyroscope.init(hardwareMap);
+        camera.init(hardwareMap);
 
         // Send telemetry message to signify robot waiting;
         telemetry.addData("Status", "Initialized");    //
         telemetry.update();
 
-
-        // Send telemetry message to indicate successful Encoder reset
-        telemetry.addData("Path0",  "Starting at %7d",
-                          -robot.rightFront.getCurrentPosition());
-                          //-robot.rightRear.getCurrentPosition());
-        telemetry.update();
-
-        // Wait for the game to start (driver presses PLAY)
         waitForStart();
 
-        driveByTicks(0.1, 20, 40);
-        //driveByTicks(0.3, 30);
-        //driveByTicks(0.3, -30);
-        // Step through each leg of the path,
-        // Note: Reverse movement is obtained by setting a negative distance (not speed)
-        //encoderDrive(DRIVE_SPEED,  20,  48, 15);  // S1: Forward 47 Inches with 5 Sec timeout
-        //encoderDrive(TURN_SPEED,   12, -12, 4.0);  // S2: Turn Right 12 Inches with 4 Sec timeout
-        //encoderDrive(DRIVE_SPEED, -24, -24, 4.0);  // S3: Reverse 24 Inches with 4 Sec timeout
+
+        for (int i = 0; i < 1000; i++) {
+            int number = camera.getNumberOfRing();
+            if (number == 0) numberOfNone++;
+            if (number == 1) numberOfOne++;
+            if (number == 4) numberOfFour++;
+        }
+
+        driveByTicks(0.5, 0, 50, true, false);
+        while (gyroscope.getAngle() < 5 && opModeIsActive()) robot.setPower(0, 0.1, 0);
+        robot.setPower(0, 0, 0);
+
+        robot.shooterDo(true);
+        sleep(500);
+
+        for (int i = 0; i < 3; i++) {
+            robot.ringPusher.setPosition(robot.RING_PUSHER_MAX);
+            sleep(300);
+            robot.ringPusher.setPosition(robot.RING_PUSHER_MIN);
+            sleep(750);
+
+            if (numberOfNone >= numberOfOne && numberOfNone >= numberOfFour) telemetry.addData("Number of rings", 0);
+            if (numberOfOne >= numberOfNone && numberOfOne >= numberOfFour) telemetry.addData("Number of rings", 1);
+            if (numberOfFour >= numberOfNone && numberOfFour >= numberOfOne) telemetry.addData("Number of rings", 4);
+            telemetry.update();
+        }
+        robot.shooterDo(false);
+
+        while (gyroscope.getAngle() >= 0 && opModeIsActive()) robot.setPower(0, -0.1, 0);
+        robot.setPower(0, 0, 0);
+        robot.reset();
+
+        if (numberOfNone >= numberOfOne && numberOfNone >= numberOfFour) {
+            telemetry.addData("Number of rings", 0);
+            telemetry.update();
+            driveByTicks(DRIVE_SPEED, -10, 0, false, true);
+            driveByTicks(DRIVE_SPEED, 0, 20, true, false);
+
+            robot.servoMinor.setPosition(robot.MINOR_MAX);
+            sleep(500);
+
+            driveByTicks(1, 0, -1, true, false);
+            //driveByTicks(DRIVE_SPEED, 10, 0, false, true);
+            //driveByTicks(DRIVE_SPEED, 0, 10, true, false);
+        }
+
+        if (numberOfOne >= numberOfNone && numberOfOne >= numberOfFour) {
+            telemetry.addData("Number of rings", 1);
+            telemetry.update();
+            driveByTicks(DRIVE_SPEED, 5, 0, false, true);
+            driveByTicks(DRIVE_SPEED, 0, 40, true, false);
+
+            robot.servoMinor.setPosition(robot.MINOR_MAX);
+            sleep(500);
+
+            driveByTicks(1, 0, -1, true, false);
+
+            driveByTicks(DRIVE_SPEED, 0, -10, true, false);
+            //driveByTicks(DRIVE_SPEED, 10, 0, false, true);
+            //driveByTicks(DRIVE_SPEED, 0, 10, true, false);
+        }
+
+        if (numberOfFour >= numberOfNone && numberOfFour >= numberOfOne) {
+            telemetry.addData("Number of rings", 4);
+            telemetry.update();
+            driveByTicks(DRIVE_SPEED, -10, 0, false, true);
+            driveByTicks(DRIVE_SPEED, 0, 65, true, false);
+
+            robot.servoMinor.setPosition(robot.MINOR_MAX);
+            sleep(500);
+
+            driveByTicks(1, 0, -1, true, false);
+            driveByTicks(DRIVE_SPEED, 0, -40, true, false);
+        }
 
         telemetry.addData("Path", "Complete");
         telemetry.update();
     }
 
-    public void driveByTicks(double speed, double x, double y) {
+    public void driveByTicks(double speed, double x, double y, boolean xIsZero, boolean yIsZero) {
         int target_position_x = robot.leftRear.getCurrentPosition() + (int) (x / LENGTH_PER_TIC);
 
         int target_left = robot.rightRear.getCurrentPosition() + (int) (y / LENGTH_PER_TIC);
         int target_right = robot.rightFront.getCurrentPosition() + (int) (y / LENGTH_PER_TIC);
 
-        int sign_x = target_position_x / Math.abs(target_position_x);
-        int sign_y = target_left / Math.abs(target_left);
+        int sign_x = (x >= 0 ? 1 : -1);
+        int sign_y = (y >= 0 ? 1 : -1);
 
-        double y_multiplier = (y >= x ? 1 : x / y);
-        double x_multiplier = (x >= y ? 1 : y / x);
+        double y_multiplier = 1, x_multiplier = 1;
+        if (Math.abs(x) >= Math.abs(y)) {
+            if (yIsZero) y_multiplier = 0;
+            else y_multiplier = Math.abs(x / y);
+        }
+        if (Math.abs(y) >= Math.abs(x)) {
+            if (xIsZero) x_multiplier = 0;
+            else x_multiplier = Math.abs(y / x);
+        }
 
         robot.rightRear.setTargetPosition(target_left);
         robot.rightFront.setTargetPosition(target_right);
         robot.leftRear.setTargetPosition(target_position_x);
 
-        telemetry.addData("sign y", sign_y);
-        telemetry.addData("y_multiplier", y_multiplier);
-        telemetry.update();
-
         robot.setPower(speed * sign_y * y_multiplier, 0, speed * sign_x * x_multiplier);
 
         while (opModeIsActive() &&
-                (Math.abs(robot.rightRear.getCurrentPosition()) < target_left * sign_y) &&
-                (Math.abs(robot.rightFront.getCurrentPosition()) < target_right * sign_y) &&
-                (Math.abs(robot.rightRear.getCurrentPosition()) < target_position_x * sign_x)) {
+                ( ((Math.abs(robot.rightRear.getCurrentPosition()) < target_left * sign_y) &&
+                  (Math.abs(robot.rightFront.getCurrentPosition()) < target_right * sign_y)) ||
+                (Math.abs(robot.leftRear.getCurrentPosition()) < target_position_x * sign_x)) ) {
 
             // Display it for the driver.
             telemetry.addData("Path1",  "Running to x%7d  y%7d", target_position_x, target_left);
@@ -149,12 +218,45 @@ public class DriveByEncoder extends LinearOpMode {
                     robot.rightRear.getCurrentPosition(), robot.rightFront.getCurrentPosition(), robot.leftRear.getCurrentPosition());
             //telemetry.addData("")
             telemetry.addData("angle", gyroscope.getAngle());
+            telemetry.addData("sign y", sign_y);
+            telemetry.addData("y_multiplier", y_multiplier);
+            telemetry.addData("sign x", sign_x);
+            telemetry.addData("x_multiplier", x_multiplier);
             telemetry.update();
         }
 
         // Stop all motion;
         robot.setPower(0, 0, 0);
-        robot.rightRear.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        robot.rightRear.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        robot.reset();
+    }
+    public void driveForward(double speed, double inches) {
+        int target_left = robot.rightRear.getCurrentPosition() + (int) (inches / LENGTH_PER_TIC);
+        int target_right = robot.rightFront.getCurrentPosition() + (int) (inches / LENGTH_PER_TIC);
+
+        int sign_y = target_left / Math.abs(target_left);
+
+    }
+
+    public void turnForTime(double target_angle) {
+        double current_angle = gyroscope.getAngle();
+        ElapsedTime time_at_target = new ElapsedTime();
+
+        while ( (Math.abs(gyroscope.format(target_angle, current_angle)) > 2 || time_at_target.seconds() < 1) && opModeIsActive()) {
+
+            if (Math.abs(gyroscope.format(target_angle, current_angle)) > 4) {
+                time_at_target.reset();
+            }
+
+            double power = gyroscope.turnTo(current_angle, target_angle);
+            current_angle = gyroscope.getAngle();
+            robot.setPower(0, power, 0);
+
+            telemetry.addData("Current angle", current_angle);
+            telemetry.addData("Time at target", time_at_target.seconds());
+            telemetry.addData("Error", gyroscope.format(target_angle, current_angle));
+            telemetry.addData("Power", power);
+            telemetry.update();
+        }
+        robot.setPower(0, 0, 0);
     }
 }
