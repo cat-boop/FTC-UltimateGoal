@@ -5,6 +5,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
+//test for notification
 public class Hardware {
 
     public final double MINOR_MIN = 0, MINOR_MAX = 0.2;
