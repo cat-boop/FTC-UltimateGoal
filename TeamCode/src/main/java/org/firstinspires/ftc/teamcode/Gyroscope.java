@@ -4,17 +4,16 @@ import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
-import org.firstinspires.ftc.robotcore.external.Func;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
-
-import java.util.Locale;
 
 public class Gyroscope {
 
     private BNO055IMU imu;
     private PID pid = new PID(0.01, 0, 0);
+
+    private final int MOD = 360;
 
     public void init(HardwareMap hardwareMap) {
         BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
@@ -39,27 +38,27 @@ public class Gyroscope {
         return imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES).firstAngle;
     }
 
-    public double turnTo(double current_angle, double target_angle) {
-        double error = format(target_angle, current_angle);
+    public double turnTo(double currentAngle, double targetAngle) {
+        double error = format(targetAngle, currentAngle);
         return pid.apply(error);
     }
 
     public double format(double valueOne, double valueTwo) {
-        return clamp_180(to_360(valueOne - clamp_360(valueTwo)));
+        return clamp180(to360(valueOne - clamp360(valueTwo)));
     }
 
-    private double clamp_360(double angle) {
-        if (angle < 0) angle += 360;
+    private double clamp360(double angle) {
+        if (angle < 0) return angle + 360;
         return angle;
     }
 
     // > 0 and < 360
-    private double to_360(double angle) {
-        return angle % 360;
+    private double to360(double angle) {
+        return (angle + MOD) % MOD;
     }
 
     //[0;360] -> [-180;180]
-    private double clamp_180(double angle) {
+    private double clamp180(double angle) {
         if (angle > 180) return angle - 360;
         return angle;
     }
