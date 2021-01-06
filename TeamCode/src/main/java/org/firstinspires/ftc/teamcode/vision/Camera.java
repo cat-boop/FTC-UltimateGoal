@@ -24,8 +24,8 @@ import org.openftc.easyopencv.OpenCvPipeline;
  */
 public class Camera {
 
-    OpenCvCamera webcam;
-    SkystoneDeterminationPipeline pipeline;
+    private OpenCvCamera webcam;
+    private SkystoneDeterminationPipeline pipeline;
 
     public void init(HardwareMap hardwareMap) {
 
@@ -66,6 +66,10 @@ public class Camera {
         if (ringPosition == SkystoneDeterminationPipeline.RingPosition.NONE) return 0;
         if (ringPosition == SkystoneDeterminationPipeline.RingPosition.ONE)  return 1;
         return 4;
+    }
+
+    public void stop() {
+        webcam.stopStreaming();
     }
 
     public static class SkystoneDeterminationPipeline extends OpenCvPipeline {
