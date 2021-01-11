@@ -34,7 +34,7 @@ public class TeleOperator extends LinearOpMode {
             if (gamepad1.right_trigger > 0) {
                 robot.intakeMajor.setPower(gamepad1.right_trigger);
                 robot.intakeMinor.setPower(gamepad1.right_trigger);
-                shooterLiftPosition = 0;
+                shooterLiftPosition = robot.SHOOTER_LIFT_MIN;
                 robot.ringLift.setPosition(robot.RING_LIFT_MIN);
             }
             else {
@@ -72,8 +72,8 @@ public class TeleOperator extends LinearOpMode {
                 sleep(150);
             }
 
-            if (gamepad1.x) robot.servoMinor.setPosition(robot.MINOR_MIN);
-            if (gamepad1.y) robot.servoMinor.setPosition(robot.MINOR_MAX);
+            if (gamepad1.x) robot.deployWobble();
+            if (gamepad1.y) robot.grabWobble();
 
             robot.shooterLift.setPosition(shooterLiftPosition);
             sleep(CYCLE_MS);

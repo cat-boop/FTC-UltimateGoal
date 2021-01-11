@@ -8,15 +8,18 @@ import com.qualcomm.robotcore.hardware.Servo;
 //test for notification
 public class Hardware {
 
-    public final double MINOR_MIN = 0, MINOR_MAX = 0.2;
+    public final double CLAW_MIN = 0, CLAW_MAX = 1;
     public final double SHOOTER_LIFT_MIN = 0, SHOOTER_LIFT_MAX = 0.5;
     public final double RING_PUSHER_MIN = 0, RING_PUSHER_MAX = 0.15;
     public final double RING_LIFT_MIN = 0, RING_LIFT_MAX = 0.6;
 
-    Servo shooterLift = null; // 1 expansion hub
-    Servo servoMinor = null; // 0 expansion hub
     Servo ringPusher = null; // 0 control hub
     Servo ringLift   = null; // 1 control hub
+
+    Servo servoClaw1 = null; // 0 expansion hub
+    Servo servoClaw2 = null; // 1 expansion hub
+
+    Servo shooterLift = null; // 2 expansion hub
 
     DcMotor leftFront  = null; // 3 motor control hub
     DcMotor leftRear   = null; // 2 motor control hub
@@ -43,12 +46,17 @@ public class Hardware {
         ringLift = hardwareMap.get(Servo.class, "ringLift");
 
         shooterLift = hardwareMap.get(Servo.class, "shooterLift");
-        servoMinor = hardwareMap.get(Servo.class, "servoMinor");
+
+        servoClaw1 = hardwareMap.get(Servo.class, "servoClaw1");
+        servoClaw2 = hardwareMap.get(Servo.class, "servoClaw2");
 
         shooterLift.setPosition(SHOOTER_LIFT_MAX);
-        servoMinor.setPosition(MINOR_MIN);
+
         ringPusher.setPosition(RING_PUSHER_MIN);
         ringLift.setPosition(RING_LIFT_MAX);
+
+        servoClaw1.setPosition(CLAW_MIN);
+        servoClaw2.setPosition(CLAW_MAX);
 
         leftRear.setDirection(DcMotorSimple.Direction.REVERSE);
 
@@ -116,5 +124,15 @@ public class Hardware {
     void shooterDo(boolean behaviour) {
         if (!behaviour) shooter.setPower(0);
         if (behaviour)  shooter.setPower(-1);
+    }
+
+    void deployWobble() {
+        servoClaw1.setPosition(CLAW_MIN);
+        servoClaw2.setPosition(CLAW_MAX);
+    }
+
+    void grabWobble() {
+        servoClaw1.setPosition(CLAW_MAX);
+        servoClaw2.setPosition(CLAW_MIN);
     }
 }
