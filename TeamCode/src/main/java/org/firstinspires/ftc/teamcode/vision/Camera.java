@@ -24,6 +24,7 @@ import org.openftc.easyopencv.OpenCvPipeline;
  */
 public class Camera {
 
+
     private OpenCvCamera webcam;
     private SkystoneDeterminationPipeline pipeline;
 
