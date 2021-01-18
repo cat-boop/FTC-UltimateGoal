@@ -31,6 +31,9 @@ public class Hardware {
 
     DcMotor shooter = null; // 2 expansion hub
 
+    public Hardware() {
+        //constructor without telemetry
+    }
     public void init(HardwareMap hardwareMap) {
         leftFront = hardwareMap.get(DcMotor.class, "leftFront");
         leftRear = hardwareMap.get(DcMotor.class, "leftRear");
@@ -91,6 +94,8 @@ public class Hardware {
     }
 
     public void setPower(double move, double turn, double sideways) {
+        if (Math.abs(turn) >= 0.3 && Math.abs(turn) <= 0.9) turn /= 0.3;
+
         double[] powers = new double[4];
         powers[0] = -move + turn + sideways;
         powers[1] = -move + turn - sideways;
