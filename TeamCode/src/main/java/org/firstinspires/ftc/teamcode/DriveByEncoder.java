@@ -65,7 +65,6 @@ import org.firstinspires.ftc.teamcode.vision.Camera;
  */
 
 @Autonomous(name="Drive By Encoder")
-//@Disabled
 public class DriveByEncoder extends LinearOpMode {
 
     /* Declare OpMode members. */
@@ -108,17 +107,17 @@ public class DriveByEncoder extends LinearOpMode {
             if (number == 1) numberOfOne++;
             if (number == 4) numberOfFour++;
         }
-        numberOfNone = 10000;
+        numberOfOne = 10000;
 
-        if (numberOfNone >= numberOfOne && numberOfNone >= numberOfFour && opModeIsActive()) {
-            //driveByTicks(DRIVE_SPEED, 0, 48);
-            driveByInches(DRIVE_SPEED, 0, 48);
-        }
-        else if (opModeIsActive()) {
+        if (numberOfFour >= numberOfNone && numberOfFour >= numberOfOne && opModeIsActive()) {
             //driveByTicks(DRIVE_SPEED, SIGN_X * 24, 40);
             //driveByTicks(DRIVE_SPEED, -SIGN_X * 24, 15);
             driveByInches(DRIVE_SPEED, SIGN_X * 24, 40);
             driveByInches(DRIVE_SPEED, -SIGN_X * 24, 15);
+        }
+        else if (opModeIsActive()) {
+            //driveByTicks(DRIVE_SPEED, 0, 48);
+            driveByInches(DRIVE_SPEED, 0, 48);
         }
 
         turnToAngle(8);
@@ -166,19 +165,29 @@ public class DriveByEncoder extends LinearOpMode {
             driveByInches(DRIVE_SPEED, SIGN_X * 20, 24);
             driveByInches(DRIVE_SPEED, 0, 15);
 
-            driveByInches(DRIVE_SPEED, -SIGN_X * 10, 0);
+            driveByInches(DRIVE_SPEED, -SIGN_X * 20, 0);
             driveByInches(DRIVE_SPEED, 0, 5);
         }
 
         if (numberOfOne >= numberOfNone && numberOfOne >= numberOfFour && opModeIsActive()) {
             telemetry.addData("Number of rings", 1);
             telemetry.update();
-            driveByTicks(DRIVE_SPEED, 0, 40);
+            driveByInches(DRIVE_SPEED, 0, 43);
 
             robot.deployWobble();
             sleep(500);
 
-            driveByTicks(DRIVE_SPEED, 0, -10);
+            turnToAngle(180);
+
+            driveByInches(DRIVE_SPEED, SIGN_X * 2.5, 67);
+
+            turnToAngle(0);
+
+
+            driveByInches(DRIVE_SPEED, 0, 60);
+
+            driveByInches(DRIVE_SPEED, 0,-5);
+
         }
 
         if (numberOfFour >= numberOfNone && numberOfFour >= numberOfOne && opModeIsActive()) {
@@ -311,7 +320,7 @@ public class DriveByEncoder extends LinearOpMode {
     public double regulateAngle(int targetAngle) {
         double currentAngle = gyroscope.getAngle();
         double power = gyroscope.turnTo(currentAngle, targetAngle);
-        if (Math.abs(Math.abs(targetAngle) - Math.abs(currentAngle)) < 1) return 0;
+        if (Math.abs(Math.abs(targetAngle) - Math.abs(currentAngle)) < 1.5) return 0;
         return power;
     }
 }

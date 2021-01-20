@@ -94,7 +94,7 @@ public class Hardware {
     }
 
     public void setPower(double move, double turn, double sideways) {
-        if (Math.abs(turn) >= 0.3 && Math.abs(turn) <= 0.9) turn /= 0.3;
+        //if (Math.abs(turn) >= 0.3 && Math.abs(turn) <= 0.9) turn /= 0.3;
 
         double[] powers = new double[4];
         powers[0] = -move + turn + sideways;
