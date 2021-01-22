@@ -11,6 +11,7 @@ public class AS5600 extends LinearOpMode {
 
     double positionMagneticEncoder;
 
+
     @Override
     public void runOpMode() {
 
