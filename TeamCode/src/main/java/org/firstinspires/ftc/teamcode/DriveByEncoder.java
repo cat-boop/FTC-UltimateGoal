@@ -74,6 +74,8 @@ public class DriveByEncoder extends LinearOpMode {
     Gyroscope gyroscope = new Gyroscope();
     Camera camera = new Camera();
 
+    ElapsedTime time = new ElapsedTime();
+
     static final double     INCHES_PER_TIC          = 0.0030326975625;
     static final double     WHEEL_DIAMETER_INCHES   = 1.1614173228346456692913385826772 * 2;
     static final double     DRIVE_SPEED             = 0.6;
@@ -95,7 +97,7 @@ public class DriveByEncoder extends LinearOpMode {
         msStuckDetectStop = 2500;
         robot.init(hardwareMap);
         gyroscope.init(hardwareMap);
-        camera.init(hardwareMap);
+        camera.init(hardwareMap, telemetry);
 
         // Send telemetry message to signify robot waiting;
         telemetry.addData("Status", "Initialized");    //
@@ -103,45 +105,30 @@ public class DriveByEncoder extends LinearOpMode {
 
         waitForStart();
 
-        for (int i = 0; i < 1000 && opModeIsActive(); i++) {
+        for (int i = 0; i < 500 && opModeIsActive(); i++) {
             int number = camera.getNumberOfRing();
             if (number == 0) numberOfNone++;
             if (number == 1) numberOfOne++;
             if (number == 4) numberOfFour++;
         }
-        numberOfOne = 10000;
 
-        if (numberOfFour >= numberOfNone && numberOfFour >= numberOfOne && opModeIsActive()) {
-            //driveByTicks(DRIVE_SPEED, SIGN_X * 24, 40);
-            //driveByTicks(DRIVE_SPEED, -SIGN_X * 24, 15);
-            driveByInches(DRIVE_SPEED, SIGN_X * 24, 40);
-            driveByInches(DRIVE_SPEED, -SIGN_X * 24, 15);
-        }
-        else if (opModeIsActive()) {
-            //driveByTicks(DRIVE_SPEED, 0, 48);
-            driveByInches(DRIVE_SPEED, 0, 48);
-        }
-
-        turnToAngle(8);
-
-        robot.shooterDo(true);
-        sleep(1000);
-
-        for (int i = 0; i < 3 && opModeIsActive(); i++) {
-            robot.ringPusher.setPosition(robot.RING_PUSHER_MAX);
-            sleep(300);
-            robot.ringPusher.setPosition(robot.RING_PUSHER_MIN);
-            sleep(750);
-
-            if (numberOfNone >= numberOfOne && numberOfNone >= numberOfFour) telemetry.addData("Number of rings", 0);
-            if (numberOfOne >= numberOfNone && numberOfOne >= numberOfFour) telemetry.addData("Number of rings", 1);
-            if (numberOfFour >= numberOfNone && numberOfFour >= numberOfOne) telemetry.addData("Number of rings", 4);
+        double currentTime = time.seconds();
+        while (time.seconds() - currentTime < 2) {
+            int rings = 0;
+            if (isOne()) rings = 1;
+            if (isFour()) rings = 4;
+            telemetry.addData("number of rings", rings);
             telemetry.update();
         }
-        robot.shooterDo(false);
 
-        turnToAngle(0);
+        driveByInches(DRIVE_SPEED, -SIGN_X * 24, 0);
+        driveByInches(DRIVE_SPEED, 0, 96);
 
+        if (isOne()) {
+            //driveByInches(DRIVE_SPEED, 0, -);
+        }
+
+        /*
         if (numberOfNone >= numberOfOne && numberOfNone >= numberOfFour && opModeIsActive()) {
             telemetry.addData("Number of rings", 0);
             telemetry.update();
@@ -209,11 +196,40 @@ public class DriveByEncoder extends LinearOpMode {
 
     }
 
+    public boolean isNone() { return numberOfNone >= numberOfOne && numberOfNone >= numberOfFour && opModeIsActive(); }
+    public boolean isOne()  { return numberOfOne >= numberOfNone && numberOfOne >= numberOfFour && opModeIsActive(); }
+    public boolean isFour() { return numberOfFour >= numberOfNone && numberOfFour >= numberOfOne && opModeIsActive(); }
+
+    public void rotateWobble() {
+        time.reset();
+        double currentTime = time.seconds();
+        while (time.seconds() - currentTime < 1) robot.wobble.setPower(1);
+        robot.wobble.setPower(0);
+        sleep(500);
+        robot.grabWobble();
+        sleep(500);
+    }
+
+    public void shoot(double targetTime) {
+        robot.shooterDo(true);
+        robot.ringPusher.setPosition(robot.RING_PUSHER_MOVE);
+        sleep(500);
+        robot.ringLift.setPower(0.1);
+
+        time.reset();
+        double currentTime = time.seconds();
+        while (time.seconds() - currentTime < targetTime) idle();
+
+        robot.shooterDo(false);
+        robot.ringPusher.setPosition(robot.RING_PUSHER_STOP);
+        robot.ringLift.setPower(0);
+    }
+
     public void driveByTicks(double speed, double x, double y) {
         int targetPositionX = Math.abs(encoders.get("encoder").getCurrentPosition() + (int) (x / INCHES_PER_TIC));
 
-        int targetLeft = Math.abs(encoders.get("encoderLeft").getCurrentPosition() + (int) (y / INCHES_PER_TIC));
-        int targetRight = Math.abs(encoders.get("encoderRight").getCurrentPosition() + (int) (y / INCHES_PER_TIC));
+        int targetLeft = Math.abs(encoders.get("leftEncoder").getCurrentPosition() + (int) (y / INCHES_PER_TIC));
+        int targetRight = Math.abs(encoders.get("rightEncoder").getCurrentPosition() + (int) (y / INCHES_PER_TIC));
 
         int signX = (x >= 0 ? 1 : -1);
         int signY = (y >= 0 ? 1 : -1);
@@ -223,9 +239,9 @@ public class DriveByEncoder extends LinearOpMode {
         robot.setPower(speed * signY, 0, speed * signX);
 
         while (opModeIsActive()) {
-            arriveToX = Math.abs(robot.leftRear.getCurrentPosition()) >= targetPositionX;
-            arriveToY = Math.abs(robot.rightRear.getCurrentPosition()) >= targetLeft ||
-                        Math.abs(robot.rightFront.getCurrentPosition()) >= targetRight;
+            arriveToX = Math.abs(encoders.get("encoder").getCurrentPosition()) >= targetPositionX;
+            arriveToY = Math.abs(encoders.get("leftEncoder").getCurrentPosition()) >= targetLeft ||
+                    Math.abs(encoders.get("rightEncoder").getCurrentPosition()) >= targetRight;
 
             if (arriveToX && !arriveToY) robot.setPower(speed * signY, regulateAngle(angle), 0);
             if (arriveToY && !arriveToX) robot.setPower(0, regulateAngle(angle), speed * signX);
@@ -234,8 +250,9 @@ public class DriveByEncoder extends LinearOpMode {
             // Display it for the driver.
             telemetry.addData("Path1",  "Running to x%7d  y left%7d   y right%7d", targetPositionX, targetLeft, targetRight);
             telemetry.addData("Path2",  "Running at %7d %7d %7d",
-                    robot.rightRear.getCurrentPosition(), robot.rightFront.getCurrentPosition(), robot.leftRear.getCurrentPosition());
-            //telemetry.addData("")
+                    Math.abs(encoders.get("encoder").getCurrentPosition()),
+                    Math.abs(encoders.get("rightEncoder").getCurrentPosition()),
+                    Math.abs(encoders.get("leftEncoder").getCurrentPosition()));
             telemetry.addData("angle", gyroscope.getAngle());
             telemetry.addData("speed forward", speed * signY);
             telemetry.addData("speed strafe", speed * signX);
@@ -251,8 +268,8 @@ public class DriveByEncoder extends LinearOpMode {
     public void driveByInches(double speed, double x, double y) {
         int targetPositionX = Math.abs(encoders.get("encoder").getCurrentPosition() + (int) (x * COUNTS_PER_INCH));
 
-        int targetLeft = Math.abs(encoders.get("encoderLeft").getCurrentPosition() + (int) (y * COUNTS_PER_INCH));
-        int targetRight = Math.abs(encoders.get("encoderRight").getCurrentPosition() + (int) (y * COUNTS_PER_INCH));
+        int targetLeft = Math.abs(encoders.get("leftEncoder").getCurrentPosition() + (int) (y * COUNTS_PER_INCH));
+        int targetRight = Math.abs(encoders.get("rightEncoder").getCurrentPosition() + (int) (y * COUNTS_PER_INCH));
 
         int signX = (x >= 0 ? 1 : -1);
         int signY = (y >= 0 ? 1 : -1);
@@ -262,9 +279,9 @@ public class DriveByEncoder extends LinearOpMode {
         robot.setPower(speed * signY, 0, speed * signX);
 
         while (opModeIsActive()) {
-            arriveToX = Math.abs(robot.leftRear.getCurrentPosition()) >= targetPositionX;
-            arriveToY = Math.abs(robot.rightRear.getCurrentPosition()) >= targetLeft ||
-                    Math.abs(robot.rightFront.getCurrentPosition()) >= targetRight;
+            arriveToX = Math.abs(encoders.get("encoder").getCurrentPosition()) >= targetPositionX;
+            arriveToY = Math.abs(encoders.get("leftEncoder").getCurrentPosition()) >= targetLeft ||
+                    Math.abs(encoders.get("rightEncoder").getCurrentPosition()) >= targetRight;
 
             if (arriveToX && !arriveToY) robot.setPower(speed * signY, regulateAngle(angle), 0);
             if (arriveToY && !arriveToX) robot.setPower(0, regulateAngle(angle), speed * signX);
@@ -273,14 +290,16 @@ public class DriveByEncoder extends LinearOpMode {
             // Display it for the driver.
             telemetry.addData("Path1",  "Running to x%7d  y left%7d   y right%7d", targetPositionX, targetLeft, targetRight);
             telemetry.addData("Path2",  "Running at %7d %7d %7d",
-                    robot.rightRear.getCurrentPosition(), robot.rightFront.getCurrentPosition(), robot.leftRear.getCurrentPosition());
-            //telemetry.addData("")
+                    Math.abs(encoders.get("encoder").getCurrentPosition()),
+                    Math.abs(encoders.get("rightEncoder").getCurrentPosition()),
+                    Math.abs(encoders.get("leftEncoder").getCurrentPosition()));
             telemetry.addData("angle", gyroscope.getAngle());
             telemetry.addData("speed forward", speed * signY);
             telemetry.addData("speed strafe", speed * signX);
             telemetry.addData("op mode is active inches", opModeIsActive());
             telemetry.update();
         }
+
         //if (isStopRequested()) camera.stop();
         // Stop all motion;
         robot.setPower(0, 0, 0);

@@ -13,9 +13,8 @@ public class Hardware {
     public static Map<String, DcMotor> encoders = new HashMap<String, DcMotor>();
 
     public final double CLAW_MIN = 0, CLAW_MAX = 1;
-    public final double SHOOTER_LIFT_MIN = 0, SHOOTER_LIFT_MAX = 0.5;
-    public final double RING_PUSHER_MIN = 0, RING_PUSHER_MAX = 0.15;
-    public final double RING_LIFT_MIN = 0, RING_LIFT_MAX = 0.6;
+    public final double SHOOTER_ANGLE_MIN = 0.5, SHOOTER_ANGLE_MAX = 0.825;
+    public final double RING_PUSHER_STOP = 0.5, RING_PUSHER_MOVE = 1;
 
     Servo ringPusher = null; // 0 control hub
 
@@ -37,14 +36,13 @@ public class Hardware {
 
     DcMotor shooter = null; // 2 expansion hub
 
-    DcMotor encoder = null; // 3 control hub
-    DcMotor rightEncoder = null; // 3 expansion hub
-
     public Hardware() {
         //constructor without telemetry
     }
 
     public void init(HardwareMap hardwareMap) {
+
+        //motor's
         leftFront = hardwareMap.get(DcMotor.class, "leftFront");
         leftRear = hardwareMap.get(DcMotor.class, "leftRear");
         rightFront = hardwareMap.get(DcMotor.class, "rightFront");
@@ -58,23 +56,25 @@ public class Hardware {
 
         ringLift = hardwareMap.get(DcMotor.class, "ringLift");
 
-        //encoder = hardwareMap.get(DcMotor.class, "encoder");
-        rightEncoder = hardwareMap.get(DcMotor.class, "rightEncoder");
-
         wobble = hardwareMap.get(DcMotor.class, "wobble");
 
+        //servo's
         servoClawLeft = hardwareMap.get(Servo.class, "servoClawLeft");
         servoClawRight = hardwareMap.get(Servo.class, "servoClawRight");
 
         shooterAngle = hardwareMap.get(Servo.class, "shooterAngle");
 
-        ringPusher.setPosition(RING_PUSHER_MIN);
+        ringPusher.setPosition(RING_PUSHER_STOP);
 
         servoClawLeft.setPosition(CLAW_MIN);
         servoClawRight.setPosition(CLAW_MAX);
 
+        shooterAngle.setPosition(SHOOTER_ANGLE_MAX);
+
         leftRear.setDirection(DcMotorSimple.Direction.REVERSE);
+        leftFront.setDirection(DcMotorSimple.Direction.REVERSE);
         ringLift.setDirection(DcMotorSimple.Direction.REVERSE);
+        intake.setDirection(DcMotorSimple.Direction.REVERSE);
 
         leftFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         leftRear.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -82,8 +82,8 @@ public class Hardware {
         rightRear.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         encoders.put("leftEncoder", shooter);
-        encoders.put("rightEncoder", rightEncoder);
-        encoders.put("encoder", leftRear);
+        encoders.put("rightEncoder", wobble);
+        encoders.put("encoder", leftFront);
         encoders.put("liftEncoder", ringLift);
         encoders.put("wobble", wobble);
 

@@ -68,7 +68,6 @@ public class ServoTest extends LinearOpMode {
         // Connect to servo (Assume PushBot Left Hand)
         // Change the text in quotes to match any servo name on your robot.
         servo = hardwareMap.get(Servo.class, "servo");
-        servo1 = hardwareMap.get(Servo.class, "servo1");
 
         // Wait for the start button
         telemetry.addData(">", "Press Start to scan Servo." );
@@ -76,7 +75,6 @@ public class ServoTest extends LinearOpMode {
 
         //mostly important
         waitForStart();
-
 
         // Scan servo till stop pressed.
         while(opModeIsActive()){
@@ -90,23 +88,14 @@ public class ServoTest extends LinearOpMode {
                 position = Math.max(position - INCREMENT, MIN_POS);
             }
 
-            if (gamepad1.x) {
-                position1 = Math.min(position1 + INCREMENT, MAX_POS);
-            }
-
-            if (gamepad1.y) {
-                position1 = Math.max(position1 - INCREMENT, MIN_POS);
-            }
 
             // Display the current value
-            telemetry.addData("Servo Position small", "%5.2f", position);
-            telemetry.addData("Servo Position bug", "%5.2f", position1);
+            telemetry.addData("Servo Position", "%5.2f", position);
             telemetry.addData(">", "Press Stop to end test." );
             telemetry.update();
 
             // Set the servo to the new position and pause;
             servo.setPosition(position);
-            servo1.setPosition(position1);
             sleep(CYCLE_MS);
             idle();
         }

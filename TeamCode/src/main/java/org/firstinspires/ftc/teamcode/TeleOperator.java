@@ -14,10 +14,10 @@ public class TeleOperator extends LinearOpMode {
     Hardware robot = new Hardware();
     Gyroscope gyroscope = new Gyroscope();
 
-    double shooterLiftPosition = 0, INCREMENT = 0.025, liftPower = 0.2;
+    double shooterLiftPosition = robot.SHOOTER_ANGLE_MAX, INCREMENT = 0.025, liftPower = 0.2;
     static final int CYCLE_MS = 50;
 
-    boolean previousState = false, needUpLift = false, needDownLift = false;
+    boolean previousStateShooter = false, previousStatePusher = false, previousStateWobble = false;
 
     ElapsedTime time = new ElapsedTime();
 
@@ -37,74 +37,81 @@ public class TeleOperator extends LinearOpMode {
         time.reset();
 
         while (!isStopRequested()) {
-            //robot.setPower(gamepad1.right_stick_y, gamepad1.right_stick_x, gamepad1.left_stick_x);
-            robot.setPower(-gamepad1.left_stick_y, -gamepad1.right_stick_x, -gamepad1.left_stick_x);
+            robot.setPower(-gamepad1.right_stick_y, -gamepad1.left_stick_x, -gamepad1.right_stick_x);
+            //robot.setPower(-gamepad2.left_stick_y, -gamepad2.right_stick_x, -gamepad2.left_stick_x);
 
             if (gamepad1.right_trigger > 0) {
-                robot.intake.setPower(gamepad1.right_trigger);
-                shooterLiftPosition = robot.SHOOTER_LIFT_MIN;
-                robot.liftDown();
+                robot.wobble.setPower(gamepad1.right_trigger);
+                shooterLiftPosition = robot.SHOOTER_ANGLE_MIN;
+                //needDownLift = true;
+                //time.reset();
             }
-            else robot.intake.setPower(-gamepad1.left_trigger);
+            else robot.wobble.setPower(-gamepad1.left_trigger);
 
-
-            if (gamepad1.right_bumper) shooterLiftPosition = 0.35;
-            if (gamepad1.left_bumper) shooterLiftPosition = Math.max(robot.SHOOTER_LIFT_MIN, shooterLiftPosition - INCREMENT);
-
-            if (gamepad1.dpad_up) {
-                //majorPosition = Math.min(robot.MAJOR_MAX, majorPosition + INCREMENT);
-                shooterLiftPosition = robot.SHOOTER_LIFT_MAX;
-                needUpLift = true;
-                time.reset();
-                //robot.ringLift.setPosition(shooterLiftPosition);
-            }
-
-            if (gamepad1.dpad_down) {
-                //majorPosition = Math.max(robot.MAJOR_MIN, majorPosition - INCREMENT);
-                shooterLiftPosition = robot.SHOOTER_LIFT_MIN;
-                needDownLift = true;
-                time.reset();
-                //robot.shooterLift.setPosition(shooterLiftPosition);
-            }
-
-            if (gamepad1.b) {
-                robot.ringPusher.setPosition(robot.RING_PUSHER_MAX);
-                //while (robot.ringPusher.getPosition() != robot.PING_PUSHER_MAX);
-                sleep(200);
-                robot.ringPusher.setPosition(robot.RING_PUSHER_MIN);
-            }
+            if (gamepad1.right_bumper) robot.intake.setPower(1);
+            if (gamepad1.left_bumper) robot.intake.setPower(-1);
+            if (!gamepad1.right_bumper && !gamepad1.left_bumper) robot.intake.setPower(0);//
 
             if (gamepad1.a) {
-                previousState = !previousState;
-                robot.shooterDo(previousState);
+                previousStateWobble = !previousStateWobble;
+                if (previousStateWobble) robot.grabWobble();
+                else robot.deployWobble();
                 sleep(150);
             }
+
+//            if (gamepad1.b) {
+//                robot.ringPusher.setPosition(robot.RING_PUSHER_MOVE);
+//                //while (robot.ringPusher.getPosition() != robot.PING_PUSHER_MAX);
+//                sleep(200);
+//                robot.ringPusher.setPosition(robot.RING_PUSHER_STOP);
+//            }
+//
+//            if (gamepad1.a) {
+//                previousState = !previousState;
+//                if (previousState) robot.ringPusher.setPosition(robot.RING_PUSHER_MOVE);
+//                else robot.ringPusher.setPosition(robot.RING_PUSHER_STOP);
+//                robot.shooterDo(previousState);
+//                sleep(150);
+//            }
 
             if (gamepad1.x) robot.deployWobble();
             if (gamepad1.y) robot.grabWobble();
 
-            if (needUpLift) {
-                if (time.seconds() > 5) {
-                    needUpLift = false;
-                    robot.ringLift.setPower(0);
-                }
-                else robot.ringLift.setPower(liftPower);
+
+
+            if (gamepad2.right_trigger > 0) robot.ringLift.setPower(gamepad2.right_trigger);
+            else robot.ringLift.setPower(-gamepad2.left_trigger);
+
+            if (gamepad2.right_bumper) {
+                shooterLiftPosition = Math.max(robot.SHOOTER_ANGLE_MIN, shooterLiftPosition - INCREMENT);
+                sleep(150);
+            }
+            if (gamepad2.left_bumper) {
+                shooterLiftPosition = Math.min(robot.SHOOTER_ANGLE_MAX, shooterLiftPosition + INCREMENT);
+                sleep(150);
             }
 
-            if (needDownLift) {
-                if (time.seconds() > 5) {
-                    needDownLift = false;
-                    robot.ringLift.setPower(0);
-                }
-                else robot.ringLift.setPower(-liftPower);
+            robot.shooterAngle.setPosition(shooterLiftPosition);
+
+            if (gamepad2.a) {
+                previousStateShooter = !previousStateShooter;
+                robot.shooterDo(previousStateShooter);
+                sleep(200);
             }
 
-            telemetry.addData("major servo position", shooterLiftPosition);
-            telemetry.addData("state", previousState);
+            if (gamepad2.b) {
+                previousStatePusher = !previousStatePusher;
+                if (previousStatePusher) robot.ringPusher.setPosition(robot.RING_PUSHER_MOVE);
+                else robot.ringPusher.setPosition(robot.RING_PUSHER_STOP);
+                sleep(200);
+            }
+
+            telemetry.addData("shooter angle position", shooterLiftPosition);
+            telemetry.addData("state", previousStateShooter);
             telemetry.addData("Heading:", gyroscope.getAngle());
             telemetry.addData("position", "encoders %5d :%5d :%5d", Objects.requireNonNull(encoders.get("encoder")).getCurrentPosition(),
                     Objects.requireNonNull(encoders.get("leftEncoder")).getCurrentPosition(),
-                    Objects.requireNonNull(encoders.get("rightEncoder")).getCurrentPosition());
+                    -Objects.requireNonNull(encoders.get("rightEncoder")).getCurrentPosition());
             telemetry.addData("shooter lift position", encoders.get("liftEncoder").getCurrentPosition());
             telemetry.addData("wobble motor position", encoders.get("wobble").getCurrentPosition());
             telemetry.update();

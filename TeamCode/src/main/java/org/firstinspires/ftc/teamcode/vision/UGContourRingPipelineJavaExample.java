@@ -26,6 +26,13 @@ import org.openftc.easyopencv.OpenCvPipeline;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.firstinspires.ftc.teamcode.vision.HsvValues.highH;
+import static org.firstinspires.ftc.teamcode.vision.HsvValues.highS;
+import static org.firstinspires.ftc.teamcode.vision.HsvValues.highV;
+import static org.firstinspires.ftc.teamcode.vision.HsvValues.lowH;
+import static org.firstinspires.ftc.teamcode.vision.HsvValues.lowS;
+import static org.firstinspires.ftc.teamcode.vision.HsvValues.lowV;
+
 @TeleOp(name = "HsvRingDetectorTest")
 public class UGContourRingPipelineJavaExample extends LinearOpMode {
     private static final int CAMERA_WIDTH = 320; // width  of wanted camera resolution
@@ -67,9 +74,14 @@ public class UGContourRingPipelineJavaExample extends LinearOpMode {
 
         UGContourRingPipeline.Config.setHORIZON(HORIZON);
 
-        UGContourRingPipeline.Config.setLowerOrange(new Scalar(75, 130, 50));
-        UGContourRingPipeline.Config.setUpperOrange(new Scalar(230, 200, 115));
+//        UGContourRingPipeline.Config.setLowerOrange(new Scalar(75, 130, 50));
+//        UGContourRingPipeline.Config.setUpperOrange(new Scalar(230, 200, 115));
 
+//        UGContourRingPipeline.Config.setLowerOrange(new Scalar(50, 50, 70));
+//        UGContourRingPipeline.Config.setUpperOrange(new Scalar(255, 200, 106));
+
+        UGContourRingPipeline.Config.setLowerOrange(new Scalar(100, 110, 0));
+        UGContourRingPipeline.Config.setUpperOrange(new Scalar(255, 200, 94));
         camera.openCameraDeviceAsync(() -> camera.startStreaming(CAMERA_WIDTH, CAMERA_HEIGHT, OpenCvCameraRotation.UPRIGHT));
 
         FtcDashboard.getInstance().startCameraStream(camera, 0);
@@ -77,6 +89,9 @@ public class UGContourRingPipelineJavaExample extends LinearOpMode {
         waitForStart();
 
         while (opModeIsActive()) {
+//            UGContourRingPipeline.Config.setLowerOrange(new Scalar(lowH, lowS, lowV));
+//            UGContourRingPipeline.Config.setUpperOrange(new Scalar(highH, highS, highV));
+
             String height = "[HEIGHT]" + " " + pipeline.getHeight();
             telemetry.addData("[Ring Stack] >>", height);
             telemetry.addData("lower orange", UGContourRingPipeline.Config.getLowerOrange());
