@@ -32,8 +32,8 @@ public class CameraTest extends LinearOpMode {
         // gives Vuforia more time to exit before the watchdog notices
         msStuckDetectStop = 2500;
 
-        RingDetector ringDetector = new RingDetector(hardwareMap, "webcam");
-        ringDetector.init();
+        //RingDetector ringDetector = new RingDetector(hardwareMap, "webcam");
+        // ringDetector.init();
 //        int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
 //        webcam = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "webcam"), cameraMonitorViewId);
 //        pipeline = new SkystoneDeterminationPipeline();
@@ -68,7 +68,7 @@ public class CameraTest extends LinearOpMode {
         waitForStart();
 
         while (opModeIsActive()) {
-            telemetry.addData("Analysis", ringDetector.getStack());
+            //telemetry.addData("Analysis", ringDetector.getStack());
             //telemetry.addData("Position", pipeline.position);
             telemetry.update();
 

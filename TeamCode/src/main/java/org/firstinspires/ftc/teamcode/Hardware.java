@@ -5,8 +5,12 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
-//test for notification
+import java.util.HashMap;
+import java.util.Map;
+
 public class Hardware {
+
+    public static Map<String, DcMotor> encoders = new HashMap<String, DcMotor>();
 
     public final double CLAW_MIN = 0, CLAW_MAX = 1;
     public final double SHOOTER_LIFT_MIN = 0, SHOOTER_LIFT_MAX = 0.5;
@@ -14,83 +18,87 @@ public class Hardware {
     public final double RING_LIFT_MIN = 0, RING_LIFT_MAX = 0.6;
 
     Servo ringPusher = null; // 0 control hub
-    Servo ringLift   = null; // 1 control hub
 
-    Servo servoClaw1 = null; // 0 expansion hub
-    Servo servoClaw2 = null; // 1 expansion hub
+    Servo servoClawLeft = null; // 0 expansion hub
+    Servo servoClawRight = null; // 1 expansion hub
 
-    Servo shooterLift = null; // 2 expansion hub
+    Servo shooterAngle = null;
+
+    DcMotor wobble = null;
+
+    DcMotor ringLift = null; // 2 expansion hub
 
     DcMotor leftFront  = null; // 3 motor control hub
     DcMotor leftRear   = null; // 2 motor control hub
     DcMotor rightFront = null; // 1 motor control hub
     DcMotor rightRear  = null; // 0 motor control hub
 
-    DcMotor intakeMajor = null; // 0 expansion hub
-    DcMotor intakeMinor = null; // 1 expansion hub
+    DcMotor intake = null;
 
     DcMotor shooter = null; // 2 expansion hub
+
+    DcMotor encoder = null; // 3 control hub
+    DcMotor rightEncoder = null; // 3 expansion hub
 
     public Hardware() {
         //constructor without telemetry
     }
+
     public void init(HardwareMap hardwareMap) {
         leftFront = hardwareMap.get(DcMotor.class, "leftFront");
         leftRear = hardwareMap.get(DcMotor.class, "leftRear");
         rightFront = hardwareMap.get(DcMotor.class, "rightFront");
         rightRear = hardwareMap.get(DcMotor.class, "rightRear");
 
-        intakeMajor = hardwareMap.get(DcMotor.class, "intakeMajor");
-        intakeMinor = hardwareMap.get(DcMotor.class, "intakeMinor");
+        intake = hardwareMap.get(DcMotor.class, "intake");
 
         shooter = hardwareMap.get(DcMotor.class, "shooter");
 
         ringPusher = hardwareMap.get(Servo.class, "ringPusher");
-        ringLift = hardwareMap.get(Servo.class, "ringLift");
 
-        shooterLift = hardwareMap.get(Servo.class, "shooterLift");
+        ringLift = hardwareMap.get(DcMotor.class, "ringLift");
 
-        servoClaw1 = hardwareMap.get(Servo.class, "servoClaw1");
-        servoClaw2 = hardwareMap.get(Servo.class, "servoClaw2");
+        //encoder = hardwareMap.get(DcMotor.class, "encoder");
+        rightEncoder = hardwareMap.get(DcMotor.class, "rightEncoder");
 
-        shooterLift.setPosition(SHOOTER_LIFT_MAX);
+        wobble = hardwareMap.get(DcMotor.class, "wobble");
+
+        servoClawLeft = hardwareMap.get(Servo.class, "servoClawLeft");
+        servoClawRight = hardwareMap.get(Servo.class, "servoClawRight");
+
+        shooterAngle = hardwareMap.get(Servo.class, "shooterAngle");
 
         ringPusher.setPosition(RING_PUSHER_MIN);
-        ringLift.setPosition(RING_LIFT_MAX);
 
-        servoClaw1.setPosition(CLAW_MIN);
-        servoClaw2.setPosition(CLAW_MAX);
+        servoClawLeft.setPosition(CLAW_MIN);
+        servoClawRight.setPosition(CLAW_MAX);
 
         leftRear.setDirection(DcMotorSimple.Direction.REVERSE);
-
-        intakeMajor.setDirection(DcMotorSimple.Direction.REVERSE);
+        ringLift.setDirection(DcMotorSimple.Direction.REVERSE);
 
         leftFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         leftRear.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         rightFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         rightRear.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-        rightFront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        rightRear.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        leftFront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        leftRear.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        encoders.put("leftEncoder", shooter);
+        encoders.put("rightEncoder", rightEncoder);
+        encoders.put("encoder", leftRear);
+        encoders.put("liftEncoder", ringLift);
+        encoders.put("wobble", wobble);
 
-        rightFront.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        rightRear.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        leftFront.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        leftRear.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        for (DcMotor dcMotor : encoders.values()) {
+            dcMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            dcMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        }
+
     }
 
     public void reset() {
-        rightFront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        rightRear.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        leftFront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        leftRear.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-
-        rightFront.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        rightRear.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        leftFront.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        leftRear.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        for (DcMotor dcMotor : encoders.values()) {
+            dcMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            dcMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        }
     }
 
     public void setPower(double move, double turn, double sideways) {
@@ -132,12 +140,12 @@ public class Hardware {
     }
 
     void deployWobble() {
-        servoClaw1.setPosition(CLAW_MIN);
-        servoClaw2.setPosition(CLAW_MAX);
+        servoClawLeft.setPosition(CLAW_MIN);
+        servoClawRight.setPosition(CLAW_MAX);
     }
 
     void grabWobble() {
-        servoClaw1.setPosition(CLAW_MAX);
-        servoClaw2.setPosition(CLAW_MIN);
+        servoClawLeft.setPosition(CLAW_MAX);
+        servoClawRight.setPosition(CLAW_MIN);
     }
 }

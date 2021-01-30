@@ -37,6 +37,8 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.vision.Camera;
 
+import static org.firstinspires.ftc.teamcode.Hardware.encoders;
+
 /**
  * This file illustrates the concept of driving a path based on encoder counts.
  * It uses the common Pushbot hardware class to define the drive on the robot.
@@ -208,15 +210,10 @@ public class DriveByEncoder extends LinearOpMode {
     }
 
     public void driveByTicks(double speed, double x, double y) {
-        int targetPositionX = Math.abs(robot.leftRear.getCurrentPosition() + (int) (x / INCHES_PER_TIC));
+        int targetPositionX = Math.abs(encoders.get("encoder").getCurrentPosition() + (int) (x / INCHES_PER_TIC));
 
-        int targetLeft = Math.abs(robot.rightRear.getCurrentPosition() + (int) (y / INCHES_PER_TIC));
-        int targetRight = Math.abs(robot.rightFront.getCurrentPosition() + (int) (y / INCHES_PER_TIC));
-
-//        int targetPositionX = Math.abs(robot.leftRear.getCurrentPosition() + (int) (x * COUNTS_PER_INCH));
-//
-//        int targetLeft = Math.abs(robot.rightRear.getCurrentPosition() + (int) (y * COUNTS_PER_INCH));
-//        int targetRight = Math.abs(robot.rightFront.getCurrentPosition() + (int) (y * COUNTS_PER_INCH));
+        int targetLeft = Math.abs(encoders.get("encoderLeft").getCurrentPosition() + (int) (y / INCHES_PER_TIC));
+        int targetRight = Math.abs(encoders.get("encoderRight").getCurrentPosition() + (int) (y / INCHES_PER_TIC));
 
         int signX = (x >= 0 ? 1 : -1);
         int signY = (y >= 0 ? 1 : -1);
@@ -245,17 +242,17 @@ public class DriveByEncoder extends LinearOpMode {
             telemetry.addData("op mode is active ticks", opModeIsActive());
             telemetry.update();
         }
-        //if (isStopRequested()) camera.stop();
-        // Stop all motion;
+
+        // Stop all motion
         robot.setPower(0, 0, 0);
         robot.reset();
     }
 
     public void driveByInches(double speed, double x, double y) {
-        int targetPositionX = Math.abs(robot.leftRear.getCurrentPosition() + (int) (x * COUNTS_PER_INCH));
+        int targetPositionX = Math.abs(encoders.get("encoder").getCurrentPosition() + (int) (x * COUNTS_PER_INCH));
 
-        int targetLeft = Math.abs(robot.rightRear.getCurrentPosition() + (int) (y * COUNTS_PER_INCH));
-        int targetRight = Math.abs(robot.rightFront.getCurrentPosition() + (int) (y * COUNTS_PER_INCH));
+        int targetLeft = Math.abs(encoders.get("encoderLeft").getCurrentPosition() + (int) (y * COUNTS_PER_INCH));
+        int targetRight = Math.abs(encoders.get("encoderRight").getCurrentPosition() + (int) (y * COUNTS_PER_INCH));
 
         int signX = (x >= 0 ? 1 : -1);
         int signY = (y >= 0 ? 1 : -1);
