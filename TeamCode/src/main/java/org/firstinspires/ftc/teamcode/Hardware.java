@@ -136,7 +136,7 @@ public class Hardware {
     //1 - max power
     void shooterDo(boolean behaviour) {
         if (!behaviour) shooter.setPower(0);
-        if (behaviour)  shooter.setPower(-1);
+        if (behaviour)  shooter.setPower(-0.9);
     }
 
     void deployWobble() {

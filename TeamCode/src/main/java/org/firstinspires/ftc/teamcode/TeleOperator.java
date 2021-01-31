@@ -40,12 +40,7 @@ public class TeleOperator extends LinearOpMode {
             robot.setPower(-gamepad1.right_stick_y, -gamepad1.left_stick_x, -gamepad1.right_stick_x);
             //robot.setPower(-gamepad2.left_stick_y, -gamepad2.right_stick_x, -gamepad2.left_stick_x);
 
-            if (gamepad1.right_trigger > 0) {
-                robot.wobble.setPower(gamepad1.right_trigger);
-                shooterLiftPosition = robot.SHOOTER_ANGLE_MIN;
-                //needDownLift = true;
-                //time.reset();
-            }
+            if (gamepad1.right_trigger > 0) robot.wobble.setPower(gamepad1.right_trigger);
             else robot.wobble.setPower(-gamepad1.left_trigger);
 
             if (gamepad1.right_bumper) robot.intake.setPower(1);
@@ -58,21 +53,6 @@ public class TeleOperator extends LinearOpMode {
                 else robot.deployWobble();
                 sleep(150);
             }
-
-//            if (gamepad1.b) {
-//                robot.ringPusher.setPosition(robot.RING_PUSHER_MOVE);
-//                //while (robot.ringPusher.getPosition() != robot.PING_PUSHER_MAX);
-//                sleep(200);
-//                robot.ringPusher.setPosition(robot.RING_PUSHER_STOP);
-//            }
-//
-//            if (gamepad1.a) {
-//                previousState = !previousState;
-//                if (previousState) robot.ringPusher.setPosition(robot.RING_PUSHER_MOVE);
-//                else robot.ringPusher.setPosition(robot.RING_PUSHER_STOP);
-//                robot.shooterDo(previousState);
-//                sleep(150);
-//            }
 
             if (gamepad1.x) robot.deployWobble();
             if (gamepad1.y) robot.grabWobble();

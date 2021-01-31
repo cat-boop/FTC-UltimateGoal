@@ -86,7 +86,7 @@ public class DriveByEncoder extends LinearOpMode {
                                                     (WHEEL_DIAMETER_INCHES * 3.1415);
 
     int numberOfNone = 0, numberOfOne = 0, numberOfFour = 0;
-    int angle = 0;
+    double angle = 0;
 
     @Override
     public void runOpMode() {
@@ -112,20 +112,35 @@ public class DriveByEncoder extends LinearOpMode {
             if (number == 4) numberOfFour++;
         }
 
-        double currentTime = time.seconds();
-        while (time.seconds() - currentTime < 2) {
-            int rings = 0;
-            if (isOne()) rings = 1;
-            if (isFour()) rings = 4;
-            telemetry.addData("number of rings", rings);
-            telemetry.update();
+        driveByInches(DRIVE_SPEED, -SIGN_X * 24, 0);
+
+        driveByInches(DRIVE_SPEED, 0, 48);
+        shoot(6);
+        driveByInches(DRIVE_SPEED, 0, 48);
+
+        if (isNone()) {
+            turnToAngle(gyroscope.getAngle() - 145);
+            driveByInches(DRIVE_SPEED, -SIGN_X * 10, 40);
+            robot.grabWobble();
+            sleep(250);
+            driveByInches(DRIVE_SPEED, SIGN_X * 10, 0);
+            driveByInches(DRIVE_SPEED, 0, -1);
         }
 
-        driveByInches(DRIVE_SPEED, -SIGN_X * 24, 0);
-        driveByInches(DRIVE_SPEED, 0, 96);
-
         if (isOne()) {
-            //driveByInches(DRIVE_SPEED, 0, -);
+            turnToAngle(gyroscope.getAngle() - 45);
+            driveByInches(DRIVE_SPEED, SIGN_X * 3, 0);
+            robot.grabWobble();
+            sleep(250);
+            driveByInches(DRIVE_SPEED, SIGN_X * 24, 0);
+        }
+
+        if (isFour()){
+            turnToAngle(gyroscope.getAngle() - 145);
+            driveByInches(DRIVE_SPEED, -SIGN_X * 10, -3);
+            robot.grabWobble();
+            sleep(500);
+            driveByInches(DRIVE_SPEED, 0, 45);
         }
 
         /*
@@ -211,18 +226,20 @@ public class DriveByEncoder extends LinearOpMode {
     }
 
     public void shoot(double targetTime) {
+        turnToAngle(gyroscope.getAngle() + 20);
         robot.shooterDo(true);
         robot.ringPusher.setPosition(robot.RING_PUSHER_MOVE);
         sleep(500);
-        robot.ringLift.setPower(0.1);
+        robot.ringLift.setPower(0.25);
 
         time.reset();
         double currentTime = time.seconds();
-        while (time.seconds() - currentTime < targetTime) idle();
+        while (time.seconds() - currentTime < targetTime && opModeIsActive()) idle();
 
         robot.shooterDo(false);
         robot.ringPusher.setPosition(robot.RING_PUSHER_STOP);
         robot.ringLift.setPower(0);
+        turnToAngle(0);
     }
 
     public void driveByTicks(double speed, double x, double y) {
@@ -306,7 +323,7 @@ public class DriveByEncoder extends LinearOpMode {
         robot.reset();
     }
 
-    public void turnToAngle(int targetAngle) {
+    public void turnToAngle(double targetAngle) {
         angle = targetAngle;
 
         double currentAngle = gyroscope.getAngle();
@@ -333,7 +350,7 @@ public class DriveByEncoder extends LinearOpMode {
         robot.reset();
     }
 
-    public double regulateAngle(int targetAngle) {
+    public double regulateAngle(double targetAngle) {
         double currentAngle = gyroscope.getAngle();
         double power = gyroscope.turnTo(currentAngle, targetAngle);
         if (Math.abs(Math.abs(targetAngle) - Math.abs(currentAngle)) < 1.5) return 0;
