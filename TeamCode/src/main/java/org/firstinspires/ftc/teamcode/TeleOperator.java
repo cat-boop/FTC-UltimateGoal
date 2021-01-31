@@ -45,7 +45,7 @@ public class TeleOperator extends LinearOpMode {
 
             if (gamepad1.right_bumper) robot.intake.setPower(1);
             if (gamepad1.left_bumper) robot.intake.setPower(-1);
-            if (!gamepad1.right_bumper && !gamepad1.left_bumper) robot.intake.setPower(0);//
+            if (!gamepad1.right_bumper && !gamepad1.left_bumper) robot.intake.setPower(0);
 
             if (gamepad1.a) {
                 previousStateWobble = !previousStateWobble;
