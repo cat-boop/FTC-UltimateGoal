@@ -89,8 +89,8 @@ public class UGContourRingPipelineJavaExample extends LinearOpMode {
         waitForStart();
 
         while (opModeIsActive()) {
-//            UGContourRingPipeline.Config.setLowerOrange(new Scalar(lowH, lowS, lowV));
-//            UGContourRingPipeline.Config.setUpperOrange(new Scalar(highH, highS, highV));
+            UGContourRingPipeline.Config.setLowerOrange(new Scalar(lowH, lowS, lowV));
+            UGContourRingPipeline.Config.setUpperOrange(new Scalar(highH, highS, highV));
 
             String height = "[HEIGHT]" + " " + pipeline.getHeight();
             telemetry.addData("[Ring Stack] >>", height);
