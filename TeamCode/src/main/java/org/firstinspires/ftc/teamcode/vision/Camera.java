@@ -20,6 +20,13 @@ import org.openftc.easyopencv.OpenCvCameraRotation;
 import org.openftc.easyopencv.OpenCvInternalCamera;
 import org.openftc.easyopencv.OpenCvPipeline;
 
+import static org.firstinspires.ftc.teamcode.vision.HsvValues.highH;
+import static org.firstinspires.ftc.teamcode.vision.HsvValues.highS;
+import static org.firstinspires.ftc.teamcode.vision.HsvValues.highV;
+import static org.firstinspires.ftc.teamcode.vision.HsvValues.lowH;
+import static org.firstinspires.ftc.teamcode.vision.HsvValues.lowS;
+import static org.firstinspires.ftc.teamcode.vision.HsvValues.lowV;
+
 /*
  * This sample demonstrates how to stream frames from Vuforia to the dashboard. Make sure to fill in
  * your Vuforia key below and select the 'Camera' preset on top right of the dashboard. This sample
@@ -56,8 +63,8 @@ public class Camera {
 //        UGContourRingPipeline.Config.setLowerOrange(new Scalar(50, 50, 70));
 //        UGContourRingPipeline.Config.setUpperOrange(new Scalar(255, 200, 106));
 
-        UGContourRingPipeline.Config.setLowerOrange(new Scalar(100, 110, 0));
-        UGContourRingPipeline.Config.setUpperOrange(new Scalar(255, 200, 94));
+        UGContourRingPipeline.Config.setLowerOrange(new Scalar(lowH, lowS, lowV));
+        UGContourRingPipeline.Config.setUpperOrange(new Scalar(highH, highS, highV));
 
         webcam.openCameraDeviceAsync(() -> webcam.startStreaming(320, 240, OpenCvCameraRotation.UPRIGHT));
 
