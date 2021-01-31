@@ -10,7 +10,7 @@ import java.util.Map;
 
 public class Hardware {
 
-    public static Map<String, DcMotor> encoders = new HashMap<String, DcMotor>();
+    public static Map<String, DcMotor> encoders = new HashMap<>();
 
     public final double CLAW_MIN = 0, CLAW_MAX = 1;
     public final double SHOOTER_ANGLE_MIN = 0.5, SHOOTER_ANGLE_MAX = 0.825;
@@ -121,7 +121,7 @@ public class Hardware {
     private double[] normalize(double[] powers) {
         double max_value = Math.abs(powers[0]);
         for (double power : powers) {
-            max_value = Math.max(max_value, power);
+            max_value = Math.max(max_value, Math.abs(power));
         }
 
         if (max_value > 1) {

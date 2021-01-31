@@ -62,14 +62,29 @@ public class TeleOperator extends LinearOpMode {
             if (gamepad2.right_trigger > 0) robot.ringLift.setPower(gamepad2.right_trigger);
             else robot.ringLift.setPower(-gamepad2.left_trigger);
 
-            if (gamepad2.right_bumper) {
+            if (gamepad2.dpad_up) {
+                shooterLiftPosition = robot.SHOOTER_ANGLE_MAX;
+            }
+            if (gamepad2.dpad_down) {
+                shooterLiftPosition = 0.7;
+            }
+
+            if (gamepad2.dpad_left) {
                 shooterLiftPosition = Math.max(robot.SHOOTER_ANGLE_MIN, shooterLiftPosition - INCREMENT);
-                sleep(150);
+                sleep(200);
+            }
+            if (gamepad2.dpad_right) {
+                shooterLiftPosition = Math.min(robot.SHOOTER_ANGLE_MAX, shooterLiftPosition + INCREMENT);
+                sleep(200);
+            }
+
+            if (gamepad2.right_bumper) {
+                robot.wobble.setPower(1);
             }
             if (gamepad2.left_bumper) {
-                shooterLiftPosition = Math.min(robot.SHOOTER_ANGLE_MAX, shooterLiftPosition + INCREMENT);
-                sleep(150);
+                robot.wobble.setPower(-1);
             }
+            if (!gamepad2.right_bumper && !gamepad2.left_bumper) robot.wobble.setPower(0);
 
             robot.shooterAngle.setPosition(shooterLiftPosition);
 
