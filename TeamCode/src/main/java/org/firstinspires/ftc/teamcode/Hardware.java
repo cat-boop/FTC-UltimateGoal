@@ -85,7 +85,7 @@ public class Hardware {
         encoders.put("rightEncoder", wobble);
         encoders.put("encoder", leftFront);
         encoders.put("liftEncoder", ringLift);
-        encoders.put("wobble", wobble);
+        //encoders.put("wobble", wobble);
 
         for (DcMotor dcMotor : encoders.values()) {
             dcMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
