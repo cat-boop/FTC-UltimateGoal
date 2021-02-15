@@ -16,7 +16,8 @@ public class Hardware {
     public final double SHOOTER_ANGLE_MIN = 0.5, SHOOTER_ANGLE_MAX = 0.825;
     public final double RING_PUSHER_STOP = 0.5, RING_PUSHER_MOVE = 1;
 
-    Servo ringPusher = null; // 0 control hub
+    Servo ringPusherLeft = null;  // 1 control hub
+    Servo ringPusherRight = null; // 2 control hub
 
     Servo servoClawLeft = null; // 0 expansion hub
     Servo servoClawRight = null; // 1 expansion hub
@@ -52,7 +53,8 @@ public class Hardware {
 
         shooter = hardwareMap.get(DcMotor.class, "shooter");
 
-        ringPusher = hardwareMap.get(Servo.class, "ringPusher");
+        ringPusherLeft = hardwareMap.get(Servo.class, "ringPusherLeft");
+        ringPusherRight = hardwareMap.get(Servo.class, "ringPusherRight");
 
         ringLift = hardwareMap.get(DcMotor.class, "ringLift");
 
@@ -64,7 +66,8 @@ public class Hardware {
 
         shooterAngle = hardwareMap.get(Servo.class, "shooterAngle");
 
-        ringPusher.setPosition(RING_PUSHER_STOP);
+        ringPusherLeft.setPosition(RING_PUSHER_STOP);
+        ringPusherRight.setPosition(RING_PUSHER_STOP);
 
         servoClawLeft.setPosition(CLAW_MIN);
         servoClawRight.setPosition(CLAW_MAX);
@@ -73,8 +76,10 @@ public class Hardware {
 
         leftRear.setDirection(DcMotorSimple.Direction.REVERSE);
         leftFront.setDirection(DcMotorSimple.Direction.REVERSE);
+
         ringLift.setDirection(DcMotorSimple.Direction.REVERSE);
-        intake.setDirection(DcMotorSimple.Direction.REVERSE);
+
+        shooter.setDirection(DcMotorSimple.Direction.REVERSE);
 
         leftFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         leftRear.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);

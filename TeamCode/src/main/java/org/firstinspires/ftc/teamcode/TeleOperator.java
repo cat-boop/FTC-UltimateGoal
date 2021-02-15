@@ -96,19 +96,20 @@ public class TeleOperator extends LinearOpMode {
 
             if (gamepad2.b) {
                 previousStatePusher = !previousStatePusher;
-                if (previousStatePusher) robot.ringPusher.setPosition(robot.RING_PUSHER_MOVE);
-                else robot.ringPusher.setPosition(robot.RING_PUSHER_STOP);
+                if (previousStatePusher) {
+                    robot.ringPusherLeft.setPosition(-robot.RING_PUSHER_MOVE);
+                    robot.ringPusherRight.setPosition(robot.RING_PUSHER_MOVE);
+                }
+                else {
+                    robot.ringPusherLeft.setPosition(robot.RING_PUSHER_STOP);
+                    robot.ringPusherRight.setPosition(robot.RING_PUSHER_STOP);
+                }
                 sleep(200);
             }
 
             telemetry.addData("shooter angle position", shooterLiftPosition);
             telemetry.addData("state", previousStateShooter);
             telemetry.addData("Heading:", gyroscope.getAngle());
-            telemetry.addData("position", "encoders %5d :%5d :%5d", Objects.requireNonNull(encoders.get("encoder")).getCurrentPosition(),
-                    Objects.requireNonNull(encoders.get("leftEncoder")).getCurrentPosition(),
-                    -Objects.requireNonNull(encoders.get("rightEncoder")).getCurrentPosition());
-            telemetry.addData("shooter lift position", encoders.get("liftEncoder").getCurrentPosition());
-            telemetry.addData("wobble motor position", encoders.get("wobble").getCurrentPosition());
             telemetry.update();
 
         }

@@ -228,7 +228,8 @@ public class DriveByEncoder extends LinearOpMode {
     public void shoot(double targetTime) {
         turnToAngle(gyroscope.getAngle() + 20);
         robot.shooterDo(true);
-        robot.ringPusher.setPosition(robot.RING_PUSHER_MOVE);
+        robot.ringPusherLeft.setPosition(-robot.RING_PUSHER_MOVE);
+        robot.ringPusherRight.setPosition(robot.RING_PUSHER_MOVE);
         sleep(500);
         robot.ringLift.setPower(0.25);
 
@@ -237,7 +238,8 @@ public class DriveByEncoder extends LinearOpMode {
         while (time.seconds() - currentTime < targetTime && opModeIsActive()) idle();
 
         robot.shooterDo(false);
-        robot.ringPusher.setPosition(robot.RING_PUSHER_STOP);
+        robot.ringPusherLeft.setPosition(robot.RING_PUSHER_STOP);
+        robot.ringPusherRight.setPosition(robot.RING_PUSHER_STOP);
         robot.ringLift.setPower(0);
         turnToAngle(0);
     }
