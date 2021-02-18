@@ -1,9 +1,11 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.TouchSensor;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -13,7 +15,7 @@ public class Hardware {
     public static Map<String, DcMotor> encoders = new HashMap<>();
 
     public final double CLAW_MIN = 0, CLAW_MAX = 1;
-    public final double SHOOTER_ANGLE_MIN = 0.5, SHOOTER_ANGLE_MAX = 0.825;
+    public final double TOWER_ANGLE_MIN = 0.5, TOWER_ANGLE_MAX = 1;
     public final double RING_PUSHER_STOP = 0.5, RING_PUSHER_MOVE = 1;
 
     Servo ringPusherLeft = null;  // 1 control hub
@@ -22,7 +24,7 @@ public class Hardware {
     Servo servoClawLeft = null; // 0 expansion hub
     Servo servoClawRight = null; // 1 expansion hub
 
-    Servo shooterAngle = null;
+    Servo towerAngle = null;
 
     DcMotor wobble = null;
 
@@ -35,7 +37,9 @@ public class Hardware {
 
     DcMotor intake = null;
 
-    DcMotor shooter = null; // 2 expansion hub
+    DcMotorEx shooter = null; // 2 expansion hub
+
+    TouchSensor isLiftDown, isLiftUp;
 
     public Hardware() {
         //constructor without telemetry
@@ -51,52 +55,54 @@ public class Hardware {
 
         intake = hardwareMap.get(DcMotor.class, "intake");
 
-        shooter = hardwareMap.get(DcMotor.class, "shooter");
-
-        ringPusherLeft = hardwareMap.get(Servo.class, "ringPusherLeft");
-        ringPusherRight = hardwareMap.get(Servo.class, "ringPusherRight");
+        shooter = hardwareMap.get(DcMotorEx.class, "shooter");
 
         ringLift = hardwareMap.get(DcMotor.class, "ringLift");
 
         wobble = hardwareMap.get(DcMotor.class, "wobble");
 
         //servo's
+        ringPusherLeft = hardwareMap.get(Servo.class, "ringPusherLeft");
+        ringPusherRight = hardwareMap.get(Servo.class, "ringPusherRight");
+
         servoClawLeft = hardwareMap.get(Servo.class, "servoClawLeft");
         servoClawRight = hardwareMap.get(Servo.class, "servoClawRight");
 
-        shooterAngle = hardwareMap.get(Servo.class, "shooterAngle");
+        towerAngle = hardwareMap.get(Servo.class, "shooterAngle");
 
+        //button's
+        //isLiftDown = hardwareMap.get(TouchSensor.class, "isLiftDown");
+        //isLiftUp = hardwareMap.get(TouchSensor.class, "isLiftUp");
+
+        //servo start position's
         ringPusherLeft.setPosition(RING_PUSHER_STOP);
         ringPusherRight.setPosition(RING_PUSHER_STOP);
 
         servoClawLeft.setPosition(CLAW_MIN);
         servoClawRight.setPosition(CLAW_MAX);
 
-        shooterAngle.setPosition(SHOOTER_ANGLE_MAX);
+        towerAngle.setPosition(TOWER_ANGLE_MAX);
 
+        //motor mode's
         leftRear.setDirection(DcMotorSimple.Direction.REVERSE);
         leftFront.setDirection(DcMotorSimple.Direction.REVERSE);
 
         ringLift.setDirection(DcMotorSimple.Direction.REVERSE);
-
-        shooter.setDirection(DcMotorSimple.Direction.REVERSE);
 
         leftFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         leftRear.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         rightFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         rightRear.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
+        //encoders initialization
         encoders.put("leftEncoder", shooter);
         encoders.put("rightEncoder", wobble);
-        encoders.put("encoder", leftFront);
-        encoders.put("liftEncoder", ringLift);
-        //encoders.put("wobble", wobble);
+        encoders.put("encoder", leftRear);
 
         for (DcMotor dcMotor : encoders.values()) {
             dcMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
             dcMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         }
-
     }
 
     public void reset() {
@@ -115,7 +121,16 @@ public class Hardware {
         powers[2] = -move - turn - sideways;
         powers[3] = -move - turn + sideways;
 
-        powers = normalize(powers);
+        double maxValue = Math.abs(powers[0]);
+        for (double power : powers) {
+            maxValue = Math.max(maxValue, Math.abs(power));
+        }
+
+        if (maxValue > 1) {
+            for (int i = 0; i < powers.length; i++) {
+                powers[i] /= maxValue;
+            }
+        }
 
         leftFront.setPower(-powers[0]);
         leftRear.setPower(-powers[1]);
@@ -123,34 +138,41 @@ public class Hardware {
         rightRear.setPower(-powers[3]);
     }
 
-    private double[] normalize(double[] powers) {
-        double max_value = Math.abs(powers[0]);
-        for (double power : powers) {
-            max_value = Math.max(max_value, Math.abs(power));
+    public enum Wobble {
+        OPEN,
+        CLOSE
+    }
+
+    void wobbleCommand(Wobble control) {
+        if (control == Wobble.OPEN) {
+            servoClawLeft.setPosition(CLAW_MIN);
+            servoClawRight.setPosition(CLAW_MAX);
         }
-
-        if (max_value > 1) {
-            for (int i = 0; i < powers.length; i++) {
-                powers[i] /= max_value;
-            }
+        if (control == Wobble.CLOSE) {
+            servoClawLeft.setPosition(CLAW_MAX);
+            servoClawRight.setPosition(CLAW_MIN);
         }
-        return powers;
     }
 
-    //0 - stop
-    //1 - max power
-    void shooterDo(boolean behaviour) {
-        if (!behaviour) shooter.setPower(0);
-        if (behaviour)  shooter.setPower(-0.9);
+    public enum TowerState {
+        STOP,
+        SHOOTER_ON,
+        PUSHER_ON
     }
 
-    void deployWobble() {
-        servoClawLeft.setPosition(CLAW_MIN);
-        servoClawRight.setPosition(CLAW_MAX);
+    void shooterCommand(TowerState towerState) {
+        if (towerState == TowerState.STOP) shooter.setVelocity(0);
+        if (towerState == TowerState.SHOOTER_ON)  shooter.setVelocity(6000);
     }
 
-    void grabWobble() {
-        servoClawLeft.setPosition(CLAW_MAX);
-        servoClawRight.setPosition(CLAW_MIN);
+    void pusherCommand(TowerState towerState) {
+        if (towerState == TowerState.STOP) {
+            ringPusherLeft.setPosition(RING_PUSHER_STOP);
+            ringPusherRight.setPosition(RING_PUSHER_STOP);
+        }
+        if (towerState == TowerState.PUSHER_ON) {
+            ringPusherLeft.setPosition(-RING_PUSHER_MOVE);
+            ringPusherRight.setPosition(RING_PUSHER_MOVE);
+        }
     }
 }

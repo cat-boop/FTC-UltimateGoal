@@ -35,36 +35,12 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.teamcode.vision.Camera;
+
+import org.firstinspires.ftc.teamcode.vision.CameraHSV;
 
 import static org.firstinspires.ftc.teamcode.Hardware.encoders;
-
-/**
- * This file illustrates the concept of driving a path based on encoder counts.
- * It uses the common Pushbot hardware class to define the drive on the robot.
- * The code is structured as a LinearOpMode
- *
- * The code REQUIRES that you DO have encoders on the wheels,
- *   otherwise you would use: PushbotAutoDriveByTime;
- *
- *  This code ALSO requires that the drive Motors have been configured such that a positive
- *  power command moves them forwards, and causes the encoders to count UP.
- *
- *   The desired path in this example is:
- *   - Drive forward for 48 inches
- *   - Spin right for 12 Inches
- *   - Drive Backwards for 24 inches
- *   - Stop and close the claw.
- *
- *  The code is written using a method called: encoderDrive(speed, leftInches, rightInches, timeoutS)
- *  that performs the actual movement.
- *  This methods assumes that each movement is relative to the last stopping place.
- *  There are other ways to perform encoder based moves, but this method is probably the simplest.
- *  This code uses the RUN_TO_POSITION mode to enable the Motor controllers to generate the run profile
- *
- * Use Android Studios to Copy this Class, and Paste it into your team's code folder with a new name.
- * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
- */
+import static org.firstinspires.ftc.teamcode.Hardware.Wobble;
+import static org.firstinspires.ftc.teamcode.Hardware.TowerState;
 
 @Autonomous(name="Drive By Encoder")
 public class DriveByEncoder extends LinearOpMode {
@@ -72,7 +48,7 @@ public class DriveByEncoder extends LinearOpMode {
     /* Declare OpMode members. */
     Hardware robot   = new Hardware();   // Use a Pushbot's hardware
     Gyroscope gyroscope = new Gyroscope();
-    Camera camera = new Camera();
+    CameraHSV camera = new CameraHSV();
 
     ElapsedTime time = new ElapsedTime();
 
@@ -121,7 +97,7 @@ public class DriveByEncoder extends LinearOpMode {
         if (isNone()) {
             turnToAngle(gyroscope.getAngle() - 145);
             driveByInches(DRIVE_SPEED, -SIGN_X * 10, 40);
-            robot.grabWobble();
+            robot.wobbleCommand(Wobble.CLOSE);
             sleep(250);
             driveByInches(DRIVE_SPEED, SIGN_X * 10, 0);
             driveByInches(DRIVE_SPEED, 0, -1);
@@ -130,7 +106,7 @@ public class DriveByEncoder extends LinearOpMode {
         if (isOne()) {
             turnToAngle(gyroscope.getAngle() - 45);
             driveByInches(DRIVE_SPEED, SIGN_X * 3, 0);
-            robot.grabWobble();
+            robot.wobbleCommand(Wobble.CLOSE);
             sleep(250);
             driveByInches(DRIVE_SPEED, SIGN_X * 24, 0);
         }
@@ -138,7 +114,7 @@ public class DriveByEncoder extends LinearOpMode {
         if (isFour()){
             turnToAngle(gyroscope.getAngle() - 145);
             driveByInches(DRIVE_SPEED, -SIGN_X * 10, -3);
-            robot.grabWobble();
+            robot.wobbleCommand(Wobble.CLOSE);
             sleep(500);
             driveByInches(DRIVE_SPEED, 0, 45);
         }
@@ -221,13 +197,13 @@ public class DriveByEncoder extends LinearOpMode {
         while (time.seconds() - currentTime < 1) robot.wobble.setPower(1);
         robot.wobble.setPower(0);
         sleep(500);
-        robot.grabWobble();
+        robot.wobbleCommand(Wobble.CLOSE);
         sleep(500);
     }
 
     public void shoot(double targetTime) {
         turnToAngle(gyroscope.getAngle() + 20);
-        robot.shooterDo(true);
+        robot.shooterCommand(TowerState.SHOOTER_ON);
         robot.ringPusherLeft.setPosition(-robot.RING_PUSHER_MOVE);
         robot.ringPusherRight.setPosition(robot.RING_PUSHER_MOVE);
         sleep(500);
@@ -237,7 +213,7 @@ public class DriveByEncoder extends LinearOpMode {
         double currentTime = time.seconds();
         while (time.seconds() - currentTime < targetTime && opModeIsActive()) idle();
 
-        robot.shooterDo(false);
+        robot.shooterCommand(TowerState.STOP);
         robot.ringPusherLeft.setPosition(robot.RING_PUSHER_STOP);
         robot.ringPusherRight.setPosition(robot.RING_PUSHER_STOP);
         robot.ringLift.setPower(0);
