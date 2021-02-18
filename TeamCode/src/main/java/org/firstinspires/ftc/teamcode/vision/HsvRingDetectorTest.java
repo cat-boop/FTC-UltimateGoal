@@ -1,30 +1,16 @@
-    package org.firstinspires.ftc.teamcode.vision;
+package org.firstinspires.ftc.teamcode.vision;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.arcrobotics.ftclib.vision.UGContourRingPipeline;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
-import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
-import org.opencv.core.Core;
-import org.opencv.core.CvType;
-import org.opencv.core.Mat;
-import org.opencv.core.Point;
-import org.opencv.core.MatOfPoint;
-import org.opencv.core.MatOfPoint2f;
-import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
-import org.opencv.core.Size;
-import org.opencv.imgproc.Imgproc;
 import org.openftc.easyopencv.OpenCvCamera;
 import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvCameraRotation;
 import org.openftc.easyopencv.OpenCvInternalCamera;
-import org.openftc.easyopencv.OpenCvPipeline;
-
-import java.util.ArrayList;
-import java.util.List;
 
 import static org.firstinspires.ftc.teamcode.vision.HsvValues.highH;
 import static org.firstinspires.ftc.teamcode.vision.HsvValues.highS;
@@ -35,10 +21,11 @@ import static org.firstinspires.ftc.teamcode.vision.HsvValues.lowV;
 
 @TeleOp(name = "HsvRingDetectorTest")
 public class UGContourRingPipelineJavaExample extends LinearOpMode {
+
     private static final int CAMERA_WIDTH = 320; // width  of wanted camera resolution
     private static final int CAMERA_HEIGHT = 240; // height of wanted camera resolution
 
-    private static final int HORIZON = 100; // horizon value to tune
+    private static final int HORIZON = 0; // horizon value to tune
 
     private static final boolean DEBUG = true; // if debug is wanted, change to true
 
@@ -74,15 +61,15 @@ public class UGContourRingPipelineJavaExample extends LinearOpMode {
 
         UGContourRingPipeline.Config.setHORIZON(HORIZON);
 
-//        UGContourRingPipeline.Config.setLowerOrange(new Scalar(75, 130, 50));
-//        UGContourRingPipeline.Config.setUpperOrange(new Scalar(230, 200, 115));
+        UGContourRingPipeline.Config.setLowerOrange(new Scalar(75, 130, 50));
+        UGContourRingPipeline.Config.setUpperOrange(new Scalar(230, 200, 115));
 
 //        UGContourRingPipeline.Config.setLowerOrange(new Scalar(50, 50, 70));
 //        UGContourRingPipeline.Config.setUpperOrange(new Scalar(255, 200, 106));
 
-        UGContourRingPipeline.Config.setLowerOrange(new Scalar(100, 110, 0));
-        UGContourRingPipeline.Config.setUpperOrange(new Scalar(255, 200, 94));
-        camera.openCameraDeviceAsync(() -> camera.startStreaming(CAMERA_WIDTH, CAMERA_HEIGHT, OpenCvCameraRotation.UPRIGHT));
+//        UGContourRingPipeline.Config.setLowerOrange(new Scalar(100, 110, 0));
+//        UGContourRingPipeline.Config.setUpperOrange(new Scalar(255, 200, 94));
+        camera.openCameraDeviceAsync(() -> camera.startStreaming(CAMERA_WIDTH, CAMERA_HEIGHT, OpenCvCameraRotation.UPSIDE_DOWN));
 
         FtcDashboard.getInstance().startCameraStream(camera, 0);
 
