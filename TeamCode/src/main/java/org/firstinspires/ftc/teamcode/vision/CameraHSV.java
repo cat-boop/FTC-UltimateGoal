@@ -32,7 +32,7 @@ import static org.firstinspires.ftc.teamcode.vision.HsvValues.lowV;
  * your Vuforia key below and select the 'Camera' preset on top right of the dashboard. This sample
  * also works for UVCs with slight adjustments.
  */
-public class Camera {
+public class CameraHSV {
 
 
     private OpenCvCamera webcam;

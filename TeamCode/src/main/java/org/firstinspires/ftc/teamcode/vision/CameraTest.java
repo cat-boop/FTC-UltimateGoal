@@ -79,16 +79,13 @@ public class CameraTest extends LinearOpMode {
         //webcam.stopStreaming();
     }
 
-    public static class SkystoneDeterminationPipeline extends OpenCvPipeline {
-        /*
-         * An enum to define the skystone position
-         */
-        public enum RingPosition {
-            FOUR,
-            ONE,
-            NONE
-        }
+    public enum RingPosition {
+        FOUR,
+        ONE,
+        NONE
+    }
 
+    public static class SkystoneDeterminationPipeline extends OpenCvPipeline {
         /*
          * Some color constants
          */

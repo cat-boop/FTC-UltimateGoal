@@ -20,7 +20,7 @@ import static org.firstinspires.ftc.teamcode.vision.HsvValues.lowS;
 import static org.firstinspires.ftc.teamcode.vision.HsvValues.lowV;
 
 @TeleOp(name = "HsvRingDetectorTest")
-public class UGContourRingPipelineJavaExample extends LinearOpMode {
+public class HsvRingDetectorTest extends LinearOpMode {
 
     private static final int CAMERA_WIDTH = 320; // width  of wanted camera resolution
     private static final int CAMERA_HEIGHT = 240; // height of wanted camera resolution
