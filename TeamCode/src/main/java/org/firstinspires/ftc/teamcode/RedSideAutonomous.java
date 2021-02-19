@@ -41,9 +41,11 @@ import org.firstinspires.ftc.teamcode.vision.CameraHSV;
 import static org.firstinspires.ftc.teamcode.Hardware.encoders;
 import static org.firstinspires.ftc.teamcode.Hardware.Wobble;
 import static org.firstinspires.ftc.teamcode.Hardware.TowerState;
+import static org.firstinspires.ftc.teamcode.Hardware.needLiftDown;
+import static org.firstinspires.ftc.teamcode.Hardware.needLiftUp;
 
-@Autonomous(name="Drive By Encoder")
-public class DriveByEncoder extends LinearOpMode {
+@Autonomous(name="Red side autonomous")
+public class RedSideAutonomous extends LinearOpMode {
 
     /* Declare OpMode members. */
     Hardware robot   = new Hardware();   // Use a Pushbot's hardware
@@ -51,6 +53,9 @@ public class DriveByEncoder extends LinearOpMode {
     CameraHSV camera = new CameraHSV();
 
     ElapsedTime time = new ElapsedTime();
+    ElapsedTime wobbleTimer = new ElapsedTime();
+
+    PID wobblePID = new PID(0.1, 0, 0);
 
     static final double     INCHES_PER_TIC          = 0.0030326975625;
     static final double     WHEEL_DIAMETER_INCHES   = 1.1614173228346456692913385826772 * 2;
@@ -87,20 +92,33 @@ public class DriveByEncoder extends LinearOpMode {
             if (number == 1) numberOfOne++;
             if (number == 4) numberOfFour++;
         }
+        camera.stop();
 
-        driveByInches(DRIVE_SPEED, -SIGN_X * 24, 0);
-
-        driveByInches(DRIVE_SPEED, 0, 48);
-        shoot(6);
-        driveByInches(DRIVE_SPEED, 0, 48);
+        shoot(3);
 
         if (isNone()) {
-            turnToAngle(gyroscope.getAngle() - 145);
-            driveByInches(DRIVE_SPEED, -SIGN_X * 10, 40);
+            wobbleTimer.reset();
+            robot.wobble.setPower(0.7);
+
+            driveByInches(DRIVE_SPEED, SIGN_X * 24, 72);
+            robot.wobbleCommand(Wobble.OPEN);
+            sleep(200);
+
+            wobbleTimer.reset();
+            robot.wobble.setPower(-0.5);
+            driveByInches(DRIVE_SPEED, -SIGN_X * 30, -72);
+
             robot.wobbleCommand(Wobble.CLOSE);
-            sleep(250);
-            driveByInches(DRIVE_SPEED, SIGN_X * 10, 0);
-            driveByInches(DRIVE_SPEED, 0, -1);
+            sleep(200);
+
+            wobbleTimer.reset();
+            robot.wobble.setPower(0.8);
+            driveByInches(DRIVE_SPEED, SIGN_X * 30, 72);
+
+            robot.wobbleCommand(Wobble.OPEN);
+            sleep(200);
+
+            driveByInches(DRIVE_SPEED, 0, -5);
         }
 
         if (isOne()) {
@@ -201,23 +219,16 @@ public class DriveByEncoder extends LinearOpMode {
         sleep(500);
     }
 
-    public void shoot(double targetTime) {
-        turnToAngle(gyroscope.getAngle() + 20);
+    public void shoot(int numberOfRings) {
         robot.shooterCommand(TowerState.SHOOTER_ON);
-        robot.ringPusherLeft.setPosition(-robot.RING_PUSHER_MOVE);
-        robot.ringPusherRight.setPosition(robot.RING_PUSHER_MOVE);
-        sleep(500);
-        robot.ringLift.setPower(0.25);
-
-        time.reset();
-        double currentTime = time.seconds();
-        while (time.seconds() - currentTime < targetTime && opModeIsActive()) idle();
-
+        for (int i = 0; i < numberOfRings; i++) {
+            robot.putLiftUp();
+            robot.pusherCommand(TowerState.PUSHER_ON);
+            sleep(500);
+            robot.pusherCommand(TowerState.STOP);
+            sleep(100);
+        }
         robot.shooterCommand(TowerState.STOP);
-        robot.ringPusherLeft.setPosition(robot.RING_PUSHER_STOP);
-        robot.ringPusherRight.setPosition(robot.RING_PUSHER_STOP);
-        robot.ringLift.setPower(0);
-        turnToAngle(0);
     }
 
     public void driveByTicks(double speed, double x, double y) {
@@ -274,6 +285,8 @@ public class DriveByEncoder extends LinearOpMode {
         robot.setPower(speed * signY, 0, speed * signX);
 
         while (opModeIsActive()) {
+            if (wobbleTimer.seconds() > 2) robot.wobble.setPower(0);
+
             arriveToX = Math.abs(encoders.get("encoder").getCurrentPosition()) >= targetPositionX;
             arriveToY = Math.abs(encoders.get("leftEncoder").getCurrentPosition()) >= targetLeft ||
                     Math.abs(encoders.get("rightEncoder").getCurrentPosition()) >= targetRight;

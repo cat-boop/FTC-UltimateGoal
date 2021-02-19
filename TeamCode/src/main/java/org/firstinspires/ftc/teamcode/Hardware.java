@@ -40,6 +40,7 @@ public class Hardware {
     DcMotorEx shooter = null; // 2 expansion hub
 
     TouchSensor isLiftDown, isLiftUp;
+    public static boolean needLiftDown = false, needLiftUp = false;
 
     public Hardware() {
         //constructor without telemetry
@@ -71,8 +72,8 @@ public class Hardware {
         towerAngle = hardwareMap.get(Servo.class, "shooterAngle");
 
         //button's
-        //isLiftDown = hardwareMap.get(TouchSensor.class, "isLiftDown");
-        //isLiftUp = hardwareMap.get(TouchSensor.class, "isLiftUp");
+        isLiftDown = hardwareMap.get(TouchSensor.class, "isLiftDown");
+        isLiftUp = hardwareMap.get(TouchSensor.class, "isLiftUp");
 
         //servo start position's
         ringPusherLeft.setPosition(RING_PUSHER_STOP);
@@ -95,9 +96,10 @@ public class Hardware {
         rightRear.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         //encoders initialization
-        encoders.put("leftEncoder", shooter);
+        encoders.put("leftEncoder", leftRear);
         encoders.put("rightEncoder", wobble);
-        encoders.put("encoder", leftRear);
+        encoders.put("encoder", rightRear);
+        encoders.put("wobble", ringLift);
 
         for (DcMotor dcMotor : encoders.values()) {
             dcMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -173,6 +175,22 @@ public class Hardware {
         if (towerState == TowerState.PUSHER_ON) {
             ringPusherLeft.setPosition(-RING_PUSHER_MOVE);
             ringPusherRight.setPosition(RING_PUSHER_MOVE);
+        }
+    }
+
+    public void putLiftDown() {
+        if (isLiftDown.isPressed()) ringLift.setPower(-0.6);
+        else {
+            ringLift.setPower(0);
+            needLiftDown = false;
+        }
+    }
+
+    public void putLiftUp() {
+        if (isLiftUp.isPressed()) ringLift.setPower(0.6);
+        else {
+            ringLift.setPower(0);
+            needLiftUp = false;
         }
     }
 }

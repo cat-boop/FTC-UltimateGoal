@@ -9,6 +9,8 @@ import java.util.Objects;
 import static org.firstinspires.ftc.teamcode.Hardware.encoders;
 import static org.firstinspires.ftc.teamcode.Hardware.Wobble;
 import static org.firstinspires.ftc.teamcode.Hardware.TowerState;
+import static org.firstinspires.ftc.teamcode.Hardware.needLiftDown;
+import static org.firstinspires.ftc.teamcode.Hardware.needLiftUp;
 
 @TeleOp(name = "TeleOp")
 public class TeleOperator extends LinearOpMode {
@@ -20,8 +22,6 @@ public class TeleOperator extends LinearOpMode {
     static final int DEBOUNCE_TIME = 200;
 
     double shooterLiftPosition = robot.TOWER_ANGLE_MAX, INCREMENT = 0.025;
-
-    boolean needLiftDown = false, needLiftUp = false;
 
     TowerState towerState = TowerState.STOP;
     Wobble wobblePosition = Wobble.OPEN;
@@ -50,11 +50,13 @@ public class TeleOperator extends LinearOpMode {
 
             telemetry.addData("shooter angle position", shooterLiftPosition);
             telemetry.addData("tower state", towerState);
-            telemetry.addData("Heading:", gyroscope.getAngle());
+            telemetry.addData("heading:", gyroscope.getAngle());
             telemetry.addData("encoder position", "%5d :%5d :%5d",
                     Objects.requireNonNull(encoders.get("encoder")).getCurrentPosition(),
                     Objects.requireNonNull(encoders.get("leftEncoder")).getCurrentPosition(),
                     Objects.requireNonNull(encoders.get("rightEncoder")).getCurrentPosition());
+            telemetry.addData("wobble position", encoders.get("wobble").getCurrentPosition());
+            telemetry.addData("shooter position", robot.shooter.getVelocity());
             telemetry.update();
         }
 
@@ -86,12 +88,13 @@ public class TeleOperator extends LinearOpMode {
     }
 
     public void secondGamepad() {
-        if (needLiftDown) putLiftDown(!robot.isLiftDown.isPressed());
+        if (needLiftUp) robot.putLiftUp();
+        if (needLiftDown) robot.putLiftDown();
 
         if (gamepad2.right_trigger > 0) {
-            robot.intake.setPower(gamepad2.right_trigger);
-            //if (robot.isLiftDown.isPressed()) needLiftDown = true;
-            //else robot.intake.setPower(gamepad2.right_trigger);
+            //robot.intake.setPower(gamepad2.right_trigger);
+            if (robot.isLiftDown.isPressed()) needLiftDown = true;
+            else robot.intake.setPower(gamepad2.right_trigger);
         }
         else robot.intake.setPower(-gamepad2.left_trigger);
 
@@ -107,9 +110,19 @@ public class TeleOperator extends LinearOpMode {
         robot.towerAngle.setPosition(shooterLiftPosition);
 
 
-        if (gamepad2.dpad_up) robot.ringLift.setPower(0.5);
-        else robot.ringLift.setPower(gamepad2.dpad_down ? -0.5 : 0);
+        if (gamepad2.dpad_up) {
+            needLiftUp = true;
+            needLiftDown = false;
+            robot.ringLift.setPower(0);
+        }
+        if (gamepad2.dpad_down) {
+            needLiftDown = true;
+            needLiftUp = false;
+            robot.ringLift.setPower(0);
+        }
 
+        if (gamepad2.right_bumper) robot.ringLift.setPower(0.5);
+        else if (!needLiftUp && !needLiftDown) robot.ringLift.setPower(gamepad2.left_bumper ? -0.5 : 0);
 
         if (gamepad2.a && towerTimer.milliseconds() > DEBOUNCE_TIME) {
             switch (towerState) {
@@ -130,13 +143,5 @@ public class TeleOperator extends LinearOpMode {
         }
         robot.shooterCommand(towerState);
         robot.pusherCommand(towerState);
-    }
-
-    public void putLiftDown(boolean isLiftDown) {
-        if (!isLiftDown) robot.ringLift.setPower(-0.3);
-        else {
-            robot.ringLift.setPower(0);
-            needLiftDown = false;
-        }
     }
 }
