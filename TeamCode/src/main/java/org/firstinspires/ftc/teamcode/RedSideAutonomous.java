@@ -39,10 +39,8 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.teamcode.vision.CameraHSV;
 
 import static org.firstinspires.ftc.teamcode.Hardware.encoders;
-import static org.firstinspires.ftc.teamcode.Hardware.Wobble;
+import static org.firstinspires.ftc.teamcode.Hardware.Claw;
 import static org.firstinspires.ftc.teamcode.Hardware.TowerState;
-import static org.firstinspires.ftc.teamcode.Hardware.needLiftDown;
-import static org.firstinspires.ftc.teamcode.Hardware.needLiftUp;
 
 @Autonomous(name="Red side autonomous")
 public class RedSideAutonomous extends LinearOpMode {
@@ -55,7 +53,7 @@ public class RedSideAutonomous extends LinearOpMode {
     ElapsedTime time = new ElapsedTime();
     ElapsedTime wobbleTimer = new ElapsedTime();
 
-    PID wobblePID = new PID(0.1, 0, 0);
+    PID wobblePID = new PID(0.05, 0, 0);
 
     static final double     INCHES_PER_TIC          = 0.0030326975625;
     static final double     WHEEL_DIAMETER_INCHES   = 1.1614173228346456692913385826772 * 2;
@@ -94,47 +92,42 @@ public class RedSideAutonomous extends LinearOpMode {
         }
         camera.stop();
 
-        shoot(3);
+        robot.shoot();
 
         if (isNone()) {
             wobbleTimer.reset();
-            robot.wobble.setPower(0.7);
+            //robot.wobble.setPower(0.7);
 
             driveByInches(DRIVE_SPEED, SIGN_X * 24, 72);
-            robot.wobbleCommand(Wobble.OPEN);
+            robot.clawCommand(Claw.OPEN);
             sleep(200);
 
             wobbleTimer.reset();
-            robot.wobble.setPower(-0.5);
+            //robot.wobble.setPower(-0.5);
             driveByInches(DRIVE_SPEED, -SIGN_X * 30, -72);
 
-            robot.wobbleCommand(Wobble.CLOSE);
+            robot.clawCommand(Claw.CLOSE);
             sleep(200);
 
             wobbleTimer.reset();
-            robot.wobble.setPower(0.8);
+            //robot.wobble.setPower(0.8);
             driveByInches(DRIVE_SPEED, SIGN_X * 30, 72);
 
-            robot.wobbleCommand(Wobble.OPEN);
+            robot.clawCommand(Claw.OPEN);
             sleep(200);
 
             driveByInches(DRIVE_SPEED, 0, -5);
         }
 
         if (isOne()) {
-            turnToAngle(gyroscope.getAngle() - 45);
-            driveByInches(DRIVE_SPEED, SIGN_X * 3, 0);
-            robot.wobbleCommand(Wobble.CLOSE);
-            sleep(250);
-            driveByInches(DRIVE_SPEED, SIGN_X * 24, 0);
+            driveByInches(DRIVE_SPEED, 0, 96);
+            robot.clawCommand(Claw.OPEN);
+            driveByInches(DRIVE_SPEED, 0, -10);
         }
 
         if (isFour()){
-            turnToAngle(gyroscope.getAngle() - 145);
-            driveByInches(DRIVE_SPEED, -SIGN_X * 10, -3);
-            robot.wobbleCommand(Wobble.CLOSE);
-            sleep(500);
-            driveByInches(DRIVE_SPEED, 0, 45);
+            driveByInches(DRIVE_SPEED, SIGN_X * 24, 120);
+
         }
 
         /*
@@ -215,7 +208,7 @@ public class RedSideAutonomous extends LinearOpMode {
         while (time.seconds() - currentTime < 1) robot.wobble.setPower(1);
         robot.wobble.setPower(0);
         sleep(500);
-        robot.wobbleCommand(Wobble.CLOSE);
+        robot.clawCommand(Claw.CLOSE);
         sleep(500);
     }
 

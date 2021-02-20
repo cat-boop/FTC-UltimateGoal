@@ -7,10 +7,11 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import java.util.Objects;
 
 import static org.firstinspires.ftc.teamcode.Hardware.encoders;
-import static org.firstinspires.ftc.teamcode.Hardware.Wobble;
+import static org.firstinspires.ftc.teamcode.Hardware.Claw;
 import static org.firstinspires.ftc.teamcode.Hardware.TowerState;
 import static org.firstinspires.ftc.teamcode.Hardware.needLiftDown;
 import static org.firstinspires.ftc.teamcode.Hardware.needLiftUp;
+import static org.firstinspires.ftc.teamcode.Hardware.needStartShoot;
 
 @TeleOp(name = "TeleOp")
 public class TeleOperator extends LinearOpMode {
@@ -19,12 +20,15 @@ public class TeleOperator extends LinearOpMode {
     Gyroscope gyroscope = new Gyroscope();
     ElapsedTime wobbleTimer = new ElapsedTime(), towerTimer = new ElapsedTime(), towerAngleTimer = new ElapsedTime();
 
+    TowerState towerState = TowerState.STOP;
+    Claw clawState = Claw.OPEN;
+
+    PID wobblePID = new PID(0.005, 0, 0);
+    int wobblePosition = 0;
+
     static final int DEBOUNCE_TIME = 200;
 
     double shooterLiftPosition = robot.TOWER_ANGLE_MAX, INCREMENT = 0.025;
-
-    TowerState towerState = TowerState.STOP;
-    Wobble wobblePosition = Wobble.OPEN;
 
     @Override
     public void runOpMode() {
@@ -55,8 +59,9 @@ public class TeleOperator extends LinearOpMode {
                     Objects.requireNonNull(encoders.get("encoder")).getCurrentPosition(),
                     Objects.requireNonNull(encoders.get("leftEncoder")).getCurrentPosition(),
                     Objects.requireNonNull(encoders.get("rightEncoder")).getCurrentPosition());
-            telemetry.addData("wobble position", encoders.get("wobble").getCurrentPosition());
+            telemetry.addData("wobble position", Objects.requireNonNull(encoders.get("wobble")).getCurrentPosition());
             telemetry.addData("shooter position", robot.shooter.getVelocity());
+            telemetry.addData("none ring button pressed", !robot.ringsIsNone.isPressed());
             telemetry.update();
         }
 
@@ -68,28 +73,42 @@ public class TeleOperator extends LinearOpMode {
         //robot.setPower(-gamepad2.left_stick_y, -gamepad2.right_stick_x, -gamepad2.left_stick_x);
 
         if (gamepad1.a && wobbleTimer.milliseconds() > DEBOUNCE_TIME) {
-            switch (wobblePosition) {
+            switch (clawState) {
                 case OPEN:
-                    wobblePosition = Wobble.CLOSE;
+                    clawState = Claw.CLOSE;
                     break;
                 case CLOSE:
-                    wobblePosition = Wobble.OPEN;
+                    clawState = Claw.OPEN;
                     break;
             }
-            robot.wobbleCommand(wobblePosition);
             wobbleTimer.reset();
         }
+        if (gamepad1.x) clawState = Claw.OPEN;
+        if (gamepad1.y) clawState = Claw.CLOSE;
+        robot.clawCommand(clawState);
 
-        if (gamepad1.x) robot.wobbleCommand(Wobble.OPEN);
-        if (gamepad1.y) robot.wobbleCommand(Wobble.CLOSE);
+        if (gamepad1.right_trigger > 0) {
+            robot.wobble.setPower(gamepad1.right_trigger);
+            wobblePosition = Objects.requireNonNull(encoders.get("wobble")).getCurrentPosition();
+        }
+        else if (gamepad1.left_trigger > 0) {
+            robot.wobble.setPower(-gamepad1.left_trigger);
+            wobblePosition = Objects.requireNonNull(encoders.get("wobble")).getCurrentPosition();
+        }
+        else {
+            if (clawState == Claw.CLOSE) robot.wobble.setPower(wobblePID.apply(Objects.requireNonNull(encoders.get("wobble")).getCurrentPosition() - wobblePosition));
+            else robot.wobble.setPower(0);
+        }
 
-        if (gamepad1.right_trigger > 0) robot.wobble.setPower(gamepad1.right_trigger);
-        else robot.wobble.setPower(-gamepad1.left_trigger);
     }
 
     public void secondGamepad() {
         if (needLiftUp) robot.putLiftUp();
         if (needLiftDown) robot.putLiftDown();
+        if (needStartShoot) {
+            robot.shooterCommand(TowerState.SHOOTER_ON);
+            robot.shoot();
+        }
 
         if (gamepad2.right_trigger > 0) {
             //robot.intake.setPower(gamepad2.right_trigger);
@@ -141,6 +160,12 @@ public class TeleOperator extends LinearOpMode {
         if (gamepad2.b) {
             towerState = TowerState.STOP;
         }
+
+        if (gamepad2.x) {
+            needLiftUp = true;
+            needStartShoot = true;
+        }
+
         robot.shooterCommand(towerState);
         robot.pusherCommand(towerState);
     }

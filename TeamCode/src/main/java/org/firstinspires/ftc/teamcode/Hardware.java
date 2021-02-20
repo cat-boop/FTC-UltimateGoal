@@ -6,6 +6,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.TouchSensor;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -39,8 +40,8 @@ public class Hardware {
 
     DcMotorEx shooter = null; // 2 expansion hub
 
-    TouchSensor isLiftDown, isLiftUp;
-    public static boolean needLiftDown = false, needLiftUp = false;
+    TouchSensor isLiftDown, isLiftUp, ringsIsNone;
+    public static boolean needLiftDown = false, needLiftUp = false, needStartShoot = false;
 
     public Hardware() {
         //constructor without telemetry
@@ -74,6 +75,7 @@ public class Hardware {
         //button's
         isLiftDown = hardwareMap.get(TouchSensor.class, "isLiftDown");
         isLiftUp = hardwareMap.get(TouchSensor.class, "isLiftUp");
+        ringsIsNone = hardwareMap.get(TouchSensor.class, "ringsIsNone");
 
         //servo start position's
         ringPusherLeft.setPosition(RING_PUSHER_STOP);
@@ -140,17 +142,17 @@ public class Hardware {
         rightRear.setPower(-powers[3]);
     }
 
-    public enum Wobble {
+    public enum Claw {
         OPEN,
         CLOSE
     }
 
-    void wobbleCommand(Wobble control) {
-        if (control == Wobble.OPEN) {
+    void clawCommand(Claw control) {
+        if (control == Claw.OPEN) {
             servoClawLeft.setPosition(CLAW_MIN);
             servoClawRight.setPosition(CLAW_MAX);
         }
-        if (control == Wobble.CLOSE) {
+        if (control == Claw.CLOSE) {
             servoClawLeft.setPosition(CLAW_MAX);
             servoClawRight.setPosition(CLAW_MIN);
         }
@@ -187,10 +189,26 @@ public class Hardware {
     }
 
     public void putLiftUp() {
-        if (isLiftUp.isPressed()) ringLift.setPower(0.6);
-        else {
+        if (isLiftUp.isPressed() && ringsIsNone.isPressed()) ringLift.setPower(0.6);
+        else if (!isLiftUp.isPressed() || !ringsIsNone.isPressed()){
             ringLift.setPower(0);
             needLiftUp = false;
+        }
+    }
+
+    public void shoot() {
+        if (!ringsIsNone.isPressed()) {
+            needStartShoot = false;
+            shooterCommand(TowerState.STOP);
+        }
+
+        if (!needLiftUp) {
+            pusherCommand(TowerState.PUSHER_ON);
+            ElapsedTime timer = new ElapsedTime();
+            timer.reset();
+            while (timer.milliseconds() < 1000);
+            pusherCommand(TowerState.STOP);
+            needLiftUp = true;
         }
     }
 }
