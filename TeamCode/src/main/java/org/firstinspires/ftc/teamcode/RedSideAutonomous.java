@@ -30,9 +30,11 @@
 package org.firstinspires.ftc.teamcode;
 
 import java.lang.Math;
+import java.util.Objects;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 
@@ -41,6 +43,8 @@ import org.firstinspires.ftc.teamcode.vision.CameraHSV;
 import static org.firstinspires.ftc.teamcode.Hardware.encoders;
 import static org.firstinspires.ftc.teamcode.Hardware.Claw;
 import static org.firstinspires.ftc.teamcode.Hardware.TowerState;
+import static org.firstinspires.ftc.teamcode.Hardware.needLiftUp;
+import static org.firstinspires.ftc.teamcode.Hardware.needStartShoot;
 
 @Autonomous(name="Red side autonomous")
 public class RedSideAutonomous extends LinearOpMode {
@@ -57,13 +61,13 @@ public class RedSideAutonomous extends LinearOpMode {
 
     static final double     INCHES_PER_TIC          = 0.0030326975625;
     static final double     WHEEL_DIAMETER_INCHES   = 1.1614173228346456692913385826772 * 2;
-    static final double     DRIVE_SPEED             = 0.6;
+    static final double     DRIVE_SPEED             = 0.8;
     static final double     SIGN_X                  = -1;
 
     static final int        COUNTS_PER_MOTOR_REV    = 2400;
-    static final double     COUNTS_PER_INCH         = COUNTS_PER_MOTOR_REV /
-                                                    (WHEEL_DIAMETER_INCHES * 3.1415);
+    static final double     COUNTS_PER_INCH         = COUNTS_PER_MOTOR_REV / (WHEEL_DIAMETER_INCHES * 3.1415);
 
+    int wobblePosition;
     int numberOfNone = 0, numberOfOne = 0, numberOfFour = 0;
     double angle = 0;
 
@@ -77,6 +81,8 @@ public class RedSideAutonomous extends LinearOpMode {
         robot.init(hardwareMap);
         gyroscope.init(hardwareMap);
         camera.init(hardwareMap, telemetry);
+
+        //robot.clawCommand(Claw.CLOSE);
 
         // Send telemetry message to signify robot waiting;
         telemetry.addData("Status", "Initialized");    //
@@ -92,112 +98,138 @@ public class RedSideAutonomous extends LinearOpMode {
         }
         camera.stop();
 
-        robot.shoot();
+        zalom();
+
+        driveByInches(DRIVE_SPEED, SIGN_X * 14, 0, false);
+        driveByInches(DRIVE_SPEED, 0, 2, false);
+        sleep(300);
+        robot.clawCommand(Claw.CLOSE);
+        sleep(300);
+
+        //robot.shoot();
 
         if (isNone()) {
-            wobbleTimer.reset();
-            //robot.wobble.setPower(0.7);
+            wobblePosition = 200;
+            driveByInches(DRIVE_SPEED, 0, 60, true);
+            wobblePosition = 0;
+            turnToAngle(-30, true);
 
-            driveByInches(DRIVE_SPEED, SIGN_X * 24, 72);
+            wobbleTimer = new ElapsedTime();
+            wobbleTimer.reset();
+            while (wobbleTimer.milliseconds() < 200) robot.wobble.setPower(0.3);
+
             robot.clawCommand(Claw.OPEN);
-            sleep(200);
 
-            wobbleTimer.reset();
-            //robot.wobble.setPower(-0.5);
-            driveByInches(DRIVE_SPEED, -SIGN_X * 30, -72);
+            robot.shooterCommand(TowerState.SHOOTER_ON);
+            turnToAngle(0, false);
+            driveByInches(DRIVE_SPEED, -SIGN_X * 24, -20, false);
+            turnToAngle(5, false);
 
+            shoot();
+
+            wobblePosition = 500;
+            turnToAngle(0, true);
+            driveByInches(DRIVE_SPEED, SIGN_X * 3, -13, true);
+            sleep(300);
             robot.clawCommand(Claw.CLOSE);
-            sleep(200);
+            sleep(100);
 
-            wobbleTimer.reset();
-            //robot.wobble.setPower(0.8);
-            driveByInches(DRIVE_SPEED, SIGN_X * 30, 72);
+            wobblePosition = 100;
+            turnToAngle(-205, true);
+            driveByInches(DRIVE_SPEED, 0, -45, true);
+
+            //ElapsedTime wobbleTimer = new ElapsedTime();
+            //wobbleTimer.reset();
+            //while (wobbleTimer.milliseconds() < 1000) regulateWobble();
 
             robot.clawCommand(Claw.OPEN);
             sleep(200);
-
-            driveByInches(DRIVE_SPEED, 0, -5);
+            driveByInches(DRIVE_SPEED, SIGN_X * 10, 0, false);
+            driveByInches(DRIVE_SPEED, 0, 0, false);
         }
 
         if (isOne()) {
-            driveByInches(DRIVE_SPEED, 0, 96);
+            wobblePosition = 100;
+
+            robot.shooterCommand(TowerState.SHOOTER_ON);
+            driveByInches(DRIVE_SPEED, 0, 40, true);
+            driveByInches(DRIVE_SPEED, -SIGN_X * 10, 10, true);
+            wobblePosition = 0;
+
+            turnToAngle(10, false);
+            shoot();
+            turnToAngle(0, true);
+
+            driveByInches(DRIVE_SPEED, 0, 30, true);
+
+            wobbleTimer = new ElapsedTime();
+            wobbleTimer.reset();
+            while (wobbleTimer.milliseconds() < 400) robot.wobble.setPower(0.3);
+
             robot.clawCommand(Claw.OPEN);
-            driveByInches(DRIVE_SPEED, 0, -10);
+            sleep(500);
+
+            driveByInches(DRIVE_SPEED, 0, -10, false);
         }
 
         if (isFour()){
-            driveByInches(DRIVE_SPEED, SIGN_X * 24, 120);
+            wobblePosition = 100;
+            robot.shooterCommand(TowerState.SHOOTER_ON);
+            driveByInches(DRIVE_SPEED, 0, 40, true);
+            driveByInches(DRIVE_SPEED, -SIGN_X * 10, 10, true);
 
+            robot.wobble.setPower(0);
+            turnToAngle(10, false);
+            shoot();
+            turnToAngle(0, true);
+
+            driveByInches(DRIVE_SPEED, SIGN_X * 15, 55, false);
+            turnToAngle(-20, false);
+
+            wobbleTimer = new ElapsedTime();
+            wobbleTimer.reset();
+            while (wobbleTimer.milliseconds() < 200) robot.wobble.setPower(0.3);
+            robot.clawCommand(Claw.OPEN);
+
+            turnToAngle(0, false);
+            driveByInches(DRIVE_SPEED, 0, -24, false);
+            driveByInches(DRIVE_SPEED, -SIGN_X * 10, -24, false);
         }
-
-        /*
-        if (numberOfNone >= numberOfOne && numberOfNone >= numberOfFour && opModeIsActive()) {
-            telemetry.addData("Number of rings", 0);
-            telemetry.update();
-
-            //driveByTicks(DRIVE_SPEED, SIGN_X * 20, 5);
-            driveByInches(DRIVE_SPEED, SIGN_X * 20, 5);
-
-            robot.deployWobble();
-            sleep(500);
-
-            turnToAngle(180);
-
-            //driveByTicks(DRIVE_SPEED, SIGN_X * 17, 20);
-            //driveByTicks(DRIVE_SPEED, 0, 13);
-            driveByInches(DRIVE_SPEED, SIGN_X * 18, 20);
-            driveByInches(DRIVE_SPEED, 0, 13);
-
-            sleep(1000); // grab wobble
-            turnToAngle(0);
-
-            //driveByTicks(DRIVE_SPEED, SIGN_X * 20, 24);
-            //driveByTicks(DRIVE_SPEED, 0, 15);
-            driveByInches(DRIVE_SPEED, SIGN_X * 20, 24);
-            driveByInches(DRIVE_SPEED, 0, 15);
-
-            driveByInches(DRIVE_SPEED, -SIGN_X * 20, 0);
-            driveByInches(DRIVE_SPEED, 0, 5);
-        }
-
-        if (numberOfOne >= numberOfNone && numberOfOne >= numberOfFour && opModeIsActive()) {
-            telemetry.addData("Number of rings", 1);
-            telemetry.update();
-            driveByInches(DRIVE_SPEED, 0, 43);
-
-            robot.deployWobble();
-            sleep(500);
-
-            turnToAngle(180);
-
-            driveByInches(DRIVE_SPEED, SIGN_X * 2.5, 67);
-
-            turnToAngle(0);
-
-
-            driveByInches(DRIVE_SPEED, 0, 60);
-
-            driveByInches(DRIVE_SPEED, 0,-5);
-
-        }
-
-        if (numberOfFour >= numberOfNone && numberOfFour >= numberOfOne && opModeIsActive()) {
-            telemetry.addData("Number of rings", 4);
-            telemetry.update();
-            driveByTicks(DRIVE_SPEED, SIGN_X * 10, 65);
-
-            robot.deployWobble();
-            sleep(500);
-
-            driveByTicks(DRIVE_SPEED, 0, -40);
-        }
-
-        telemetry.addData("Path", "Complete");
-        telemetry.update();
-        //*/
-
     }
 
+    public void zalom() {
+
+        wobbleTimer.reset();
+        while (wobbleTimer.milliseconds() < 300) robot.wobble.setPower(0.3);
+//        wobblePosition = -345;
+//        wobbleTimer.reset();
+//        while(Math.abs(encoders.get("wobble").getCurrentPosition()) < Math.abs(wobblePosition) && opModeIsActive()) {
+//            robot.wobble.setPower(0.4);
+//            telemetry.addData("wobble encoder", encoders.get("wobble").getCurrentPosition());
+//            telemetry.update();
+//        }
+//
+//        sleep(500);
+//
+//        wobblePosition = -10;
+//        wobbleTimer.reset();
+//        while(Math.abs(encoders.get("wobble").getCurrentPosition()) > Math.abs(wobblePosition) && opModeIsActive()) {
+//            robot.wobble.setPower(-1);
+//            telemetry.addData("wobble encoder", encoders.get("wobble").getCurrentPosition());
+//            telemetry.update();
+//        }
+//
+//        sleep(1000);
+//
+//        wobblePosition = -340;
+//        wobbleTimer.reset();
+//        while(wobbleTimer.milliseconds() < 500 && opModeIsActive()) {
+//            regulateWobble();
+//        }
+
+        encoders.get("wobble").setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        encoders.get("wobble").setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+    }
     public boolean isNone() { return numberOfNone >= numberOfOne && numberOfNone >= numberOfFour && opModeIsActive(); }
     public boolean isOne()  { return numberOfOne >= numberOfNone && numberOfOne >= numberOfFour && opModeIsActive(); }
     public boolean isFour() { return numberOfFour >= numberOfNone && numberOfFour >= numberOfOne && opModeIsActive(); }
@@ -212,59 +244,20 @@ public class RedSideAutonomous extends LinearOpMode {
         sleep(500);
     }
 
-    public void shoot(int numberOfRings) {
-        robot.shooterCommand(TowerState.SHOOTER_ON);
-        for (int i = 0; i < numberOfRings; i++) {
-            robot.putLiftUp();
+    public void shoot() {
+        while (opModeIsActive()) {
+            robot.putLiftUp(0.2);
+            if (!robot.ringsIsNone.isPressed()) break;
             robot.pusherCommand(TowerState.PUSHER_ON);
-            sleep(500);
-            robot.pusherCommand(TowerState.STOP);
-            sleep(100);
+            sleep(1000);
+            //robot.pusherCommand(TowerState.STOP);
+            //sleep(300);
         }
         robot.shooterCommand(TowerState.STOP);
+        robot.pusherCommand(TowerState.STOP);
     }
 
-    public void driveByTicks(double speed, double x, double y) {
-        int targetPositionX = Math.abs(encoders.get("encoder").getCurrentPosition() + (int) (x / INCHES_PER_TIC));
-
-        int targetLeft = Math.abs(encoders.get("leftEncoder").getCurrentPosition() + (int) (y / INCHES_PER_TIC));
-        int targetRight = Math.abs(encoders.get("rightEncoder").getCurrentPosition() + (int) (y / INCHES_PER_TIC));
-
-        int signX = (x >= 0 ? 1 : -1);
-        int signY = (y >= 0 ? 1 : -1);
-
-        boolean arriveToX, arriveToY;
-
-        robot.setPower(speed * signY, 0, speed * signX);
-
-        while (opModeIsActive()) {
-            arriveToX = Math.abs(encoders.get("encoder").getCurrentPosition()) >= targetPositionX;
-            arriveToY = Math.abs(encoders.get("leftEncoder").getCurrentPosition()) >= targetLeft ||
-                    Math.abs(encoders.get("rightEncoder").getCurrentPosition()) >= targetRight;
-
-            if (arriveToX && !arriveToY) robot.setPower(speed * signY, regulateAngle(angle), 0);
-            if (arriveToY && !arriveToX) robot.setPower(0, regulateAngle(angle), speed * signX);
-
-            if (arriveToX && arriveToY) break;
-            // Display it for the driver.
-            telemetry.addData("Path1",  "Running to x%7d  y left%7d   y right%7d", targetPositionX, targetLeft, targetRight);
-            telemetry.addData("Path2",  "Running at %7d %7d %7d",
-                    Math.abs(encoders.get("encoder").getCurrentPosition()),
-                    Math.abs(encoders.get("rightEncoder").getCurrentPosition()),
-                    Math.abs(encoders.get("leftEncoder").getCurrentPosition()));
-            telemetry.addData("angle", gyroscope.getAngle());
-            telemetry.addData("speed forward", speed * signY);
-            telemetry.addData("speed strafe", speed * signX);
-            telemetry.addData("op mode is active ticks", opModeIsActive());
-            telemetry.update();
-        }
-
-        // Stop all motion
-        robot.setPower(0, 0, 0);
-        robot.reset();
-    }
-
-    public void driveByInches(double speed, double x, double y) {
+    public void driveByInches(double speed, double x, double y, boolean needRegulateWobble) {
         int targetPositionX = Math.abs(encoders.get("encoder").getCurrentPosition() + (int) (x * COUNTS_PER_INCH));
 
         int targetLeft = Math.abs(encoders.get("leftEncoder").getCurrentPosition() + (int) (y * COUNTS_PER_INCH));
@@ -278,7 +271,7 @@ public class RedSideAutonomous extends LinearOpMode {
         robot.setPower(speed * signY, 0, speed * signX);
 
         while (opModeIsActive()) {
-            if (wobbleTimer.seconds() > 2) robot.wobble.setPower(0);
+            if (needRegulateWobble) regulateWobble();
 
             arriveToX = Math.abs(encoders.get("encoder").getCurrentPosition()) >= targetPositionX;
             arriveToY = Math.abs(encoders.get("leftEncoder").getCurrentPosition()) >= targetLeft ||
@@ -297,7 +290,7 @@ public class RedSideAutonomous extends LinearOpMode {
             telemetry.addData("angle", gyroscope.getAngle());
             telemetry.addData("speed forward", speed * signY);
             telemetry.addData("speed strafe", speed * signX);
-            telemetry.addData("op mode is active inches", opModeIsActive());
+            telemetry.addData("wobble pid speed", wobblePID.apply(Objects.requireNonNull(encoders.get("wobble")).getCurrentPosition() - wobblePosition));
             telemetry.update();
         }
 
@@ -307,13 +300,15 @@ public class RedSideAutonomous extends LinearOpMode {
         robot.reset();
     }
 
-    public void turnToAngle(double targetAngle) {
+    public void turnToAngle(double targetAngle, boolean needRegulateWobble) {
         angle = targetAngle;
 
         double currentAngle = gyroscope.getAngle();
         ElapsedTime timeAtTarget = new ElapsedTime();
 
         while ( (Math.abs(gyroscope.format(targetAngle, currentAngle)) > 2 || timeAtTarget.seconds() < 0.5) && opModeIsActive()) {
+
+            if (needRegulateWobble) regulateWobble();
 
             if (Math.abs(gyroscope.format(targetAngle, currentAngle)) > 4) {
                 timeAtTarget.reset();
@@ -327,7 +322,7 @@ public class RedSideAutonomous extends LinearOpMode {
             telemetry.addData("Time at target", timeAtTarget.seconds());
             telemetry.addData("Error", gyroscope.format(targetAngle, currentAngle));
             telemetry.addData("Power", power);
-            telemetry.addData("op mode is active", opModeIsActive());
+            telemetry.addData("wobble pid speed", wobblePID.apply(Objects.requireNonNull(encoders.get("wobble")).getCurrentPosition() - wobblePosition));
             telemetry.update();
         }
         robot.setPower(0, 0, 0);
@@ -339,5 +334,9 @@ public class RedSideAutonomous extends LinearOpMode {
         double power = gyroscope.turnTo(currentAngle, targetAngle);
         if (Math.abs(Math.abs(targetAngle) - Math.abs(currentAngle)) < 1.5) return 0;
         return power;
+    }
+
+    public void regulateWobble() {
+        robot.wobble.setPower(wobblePID.apply(Objects.requireNonNull(encoders.get("wobble")).getCurrentPosition() - wobblePosition));
     }
 }

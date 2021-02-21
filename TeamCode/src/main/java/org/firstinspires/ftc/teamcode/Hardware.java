@@ -188,8 +188,8 @@ public class Hardware {
         }
     }
 
-    public void putLiftUp() {
-        if (isLiftUp.isPressed() && ringsIsNone.isPressed()) ringLift.setPower(0.6);
+    public void putLiftUp(double speed) {
+        if (isLiftUp.isPressed() && ringsIsNone.isPressed()) ringLift.setPower(speed);
         else if (!isLiftUp.isPressed() || !ringsIsNone.isPressed()){
             ringLift.setPower(0);
             needLiftUp = false;
@@ -197,6 +197,7 @@ public class Hardware {
     }
 
     public void shoot() {
+        shooterCommand(TowerState.SHOOTER_ON);
         if (!ringsIsNone.isPressed()) {
             needStartShoot = false;
             shooterCommand(TowerState.STOP);

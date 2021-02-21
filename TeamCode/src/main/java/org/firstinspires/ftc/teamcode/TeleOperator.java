@@ -97,13 +97,16 @@ public class TeleOperator extends LinearOpMode {
         }
         else {
             if (clawState == Claw.CLOSE) robot.wobble.setPower(wobblePID.apply(Objects.requireNonNull(encoders.get("wobble")).getCurrentPosition() - wobblePosition));
-            else robot.wobble.setPower(0);
+            else {
+                robot.wobble.setPower(0);
+                wobblePosition = Objects.requireNonNull(encoders.get("wobble")).getCurrentPosition();
+            }
         }
 
     }
 
     public void secondGamepad() {
-        if (needLiftUp) robot.putLiftUp();
+        if (needLiftUp) robot.putLiftUp(0.8);
         if (needLiftDown) robot.putLiftDown();
         if (needStartShoot) {
             robot.shooterCommand(TowerState.SHOOTER_ON);

@@ -55,7 +55,7 @@ public class CameraHSV {
 
         UGContourRingPipeline.Config.setCAMERA_WIDTH(320);
 
-        UGContourRingPipeline.Config.setHORIZON(100);
+        UGContourRingPipeline.Config.setHORIZON(0);
 
 //        UGContourRingPipeline.Config.setLowerOrange(new Scalar(75, 130, 50));
 //        UGContourRingPipeline.Config.setUpperOrange(new Scalar(230, 200, 115));
