@@ -58,8 +58,8 @@ public class ServoTest extends LinearOpMode {
     static final double MIN_POS     =  0.0;     // Minimum rotational position
 
     // Define class members
-    Servo   servo, servo1;
-    double  position = 0, position1 = 0; // Start at halfway position
+    Servo   servo;
+    double  position = 0.5; // Start at halfway position
 
 
     @Override

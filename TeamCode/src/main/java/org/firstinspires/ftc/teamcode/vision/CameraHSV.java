@@ -80,5 +80,6 @@ public class CameraHSV {
 
     public void stop() {
         webcam.stopStreaming();
+        FtcDashboard.getInstance().stopCameraStream();
     }
 }

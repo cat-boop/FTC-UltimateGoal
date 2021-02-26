@@ -15,32 +15,44 @@ public class Hardware {
 
     public static Map<String, DcMotor> encoders = new HashMap<>();
 
-    public final double CLAW_MIN = 0, CLAW_MAX = 1;
-    public final double TOWER_ANGLE_MIN = 0.5, TOWER_ANGLE_MAX = 1;
-    public final double RING_PUSHER_STOP = 0.5, RING_PUSHER_MOVE = 1;
+    private final double TOWER_ANGLE_MAX = 1;
+    private final double RING_PUSHER_STOP = 0.5, RING_PUSHER_MOVE = 1;
+    private final double LIFT_DOOR_LEFT_OPEN = 0.6, LIFT_DOOR_LEFT_CLOSE = 0.46;
+    private final double LIFT_DOOR_RIGHT_OPEN = 0.65, LIFT_DOOR_RIGHT_CLOSE = 0.75;
 
-    Servo ringPusherLeft = null;  // 1 control hub
-    Servo ringPusherRight = null; // 2 control hub
+    public double getMinTowerAngle() { return 0.5; }
+    public double getMaxTowerAngle() { return TOWER_ANGLE_MAX; }
 
-    Servo servoClawLeft = null; // 0 expansion hub
-    Servo servoClawRight = null; // 1 expansion hub
+    public Servo manipulatorReturner = null;
 
-    Servo towerAngle = null;
+    public Servo liftDoorLeft = null;
+    public Servo liftDoorRight = null;
 
-    DcMotor wobble = null;
+    public Servo ringPusherLeft = null;  // 1 control hub
+    public Servo ringPusherRight = null; // 2 control hub
 
-    DcMotor ringLift = null; // 2 expansion hub
+    public Servo servoClawLeft = null; // 0 expansion hub
+    public Servo servoClawRight = null; // 1 expansion hub
 
-    DcMotor leftFront  = null; // 3 motor control hub
-    DcMotor leftRear   = null; // 2 motor control hub
-    DcMotor rightFront = null; // 1 motor control hub
-    DcMotor rightRear  = null; // 0 motor control hub
+    public Servo towerAngle = null;
 
-    DcMotor intake = null;
+    public DcMotor manipulator = null;
 
-    DcMotorEx shooter = null; // 2 expansion hub
+    public DcMotor ringLift = null; // 2 expansion hub
 
-    TouchSensor isLiftDown, isLiftUp, ringsIsNone;
+    public DcMotor leftFront  = null; // 3 motor control hub
+    public DcMotor leftRear   = null; // 2 motor control hub
+    public DcMotor rightFront = null; // 1 motor control hub
+    public DcMotor rightRear  = null; // 0 motor control hub
+
+    public DcMotor intake = null;
+
+    public DcMotorEx shooter = null; // 2 expansion hub
+
+    public TouchSensor isLiftDown, isLiftUp, ringsIsNone;
+
+    ElapsedTime pusherTimer = new ElapsedTime();
+
     public static boolean needLiftDown = false, needLiftUp = false, needStartShoot = false;
 
     public Hardware() {
@@ -48,7 +60,6 @@ public class Hardware {
     }
 
     public void init(HardwareMap hardwareMap) {
-
         //motor's
         leftFront = hardwareMap.get(DcMotor.class, "leftFront");
         leftRear = hardwareMap.get(DcMotor.class, "leftRear");
@@ -61,9 +72,14 @@ public class Hardware {
 
         ringLift = hardwareMap.get(DcMotor.class, "ringLift");
 
-        wobble = hardwareMap.get(DcMotor.class, "wobble");
+        manipulator = hardwareMap.get(DcMotor.class, "manipulator");
 
         //servo's
+        manipulatorReturner = hardwareMap.get(Servo.class, "manipulatorReturner");
+
+        liftDoorLeft = hardwareMap.get(Servo.class, "liftDoorLeft");
+        liftDoorRight = hardwareMap.get(Servo.class, "liftDoorRight");
+
         ringPusherLeft = hardwareMap.get(Servo.class, "ringPusherLeft");
         ringPusherRight = hardwareMap.get(Servo.class, "ringPusherRight");
 
@@ -78,11 +94,14 @@ public class Hardware {
         ringsIsNone = hardwareMap.get(TouchSensor.class, "ringsIsNone");
 
         //servo start position's
-        ringPusherLeft.setPosition(RING_PUSHER_STOP);
-        ringPusherRight.setPosition(RING_PUSHER_STOP);
+        manipulatorCommand(ManipulatorState.DISASSEMBLED);
 
-        servoClawLeft.setPosition(CLAW_MIN);
-        servoClawRight.setPosition(CLAW_MAX);
+        doorCommand(Door.OPEN);
+
+        shooterCommand(TowerState.STOP);
+        pusherCommand(TowerState.STOP);
+
+        clawCommand(Claw.OPEN);
 
         towerAngle.setPosition(TOWER_ANGLE_MAX);
 
@@ -97,9 +116,13 @@ public class Hardware {
         rightFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         rightRear.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
+        shooter.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        shooter.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        shooter.setVelocityPIDFCoefficients(500, 0, 0, 0);
+
         //encoders initialization
         encoders.put("leftEncoder", leftRear);
-        encoders.put("rightEncoder", wobble);
+        encoders.put("rightEncoder", manipulator);
         encoders.put("encoder", rightRear);
         encoders.put("wobble", ringLift);
 
@@ -110,10 +133,12 @@ public class Hardware {
     }
 
     public void reset() {
+        encoders.remove("wobble", ringLift);
         for (DcMotor dcMotor : encoders.values()) {
             dcMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
             dcMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         }
+        encoders.put("wobble", ringLift);
     }
 
     public void setPower(double move, double turn, double sideways) {
@@ -142,12 +167,40 @@ public class Hardware {
         rightRear.setPower(-powers[3]);
     }
 
+    public enum ManipulatorState {
+        ASSEMBLED,
+        DISASSEMBLED
+    }
+
+    public void manipulatorCommand(ManipulatorState control) {
+        double SERVO_WOBBLE_OPEN = 0.65, SERVO_WOBBLE_CLOSE = 0;
+        if (control == ManipulatorState.ASSEMBLED) manipulatorReturner.setPosition(SERVO_WOBBLE_OPEN);
+        if (control == ManipulatorState.DISASSEMBLED) manipulatorReturner.setPosition(SERVO_WOBBLE_CLOSE);
+    }
+
+    public enum Door {
+        OPEN,
+        CLOSE
+    }
+
+    public void doorCommand (Door control) {
+        if (control == Door.OPEN) {
+            liftDoorLeft.setPosition(LIFT_DOOR_LEFT_OPEN);
+            liftDoorRight.setPosition(LIFT_DOOR_RIGHT_OPEN);
+        }
+        if (control == Door.CLOSE) {
+            liftDoorLeft.setPosition(LIFT_DOOR_LEFT_CLOSE);
+            liftDoorRight.setPosition(LIFT_DOOR_RIGHT_CLOSE);
+        }
+    }
+
     public enum Claw {
         OPEN,
         CLOSE
     }
 
-    void clawCommand(Claw control) {
+    public void clawCommand(Claw control) {
+        double CLAW_MIN = 0, CLAW_MAX = 1;
         if (control == Claw.OPEN) {
             servoClawLeft.setPosition(CLAW_MIN);
             servoClawRight.setPosition(CLAW_MAX);
@@ -164,12 +217,12 @@ public class Hardware {
         PUSHER_ON
     }
 
-    void shooterCommand(TowerState towerState) {
+    public void shooterCommand(TowerState towerState) {
         if (towerState == TowerState.STOP) shooter.setVelocity(0);
         if (towerState == TowerState.SHOOTER_ON)  shooter.setVelocity(6000);
     }
 
-    void pusherCommand(TowerState towerState) {
+    public void pusherCommand(TowerState towerState) {
         if (towerState == TowerState.STOP) {
             ringPusherLeft.setPosition(RING_PUSHER_STOP);
             ringPusherRight.setPosition(RING_PUSHER_STOP);
@@ -184,11 +237,13 @@ public class Hardware {
         if (isLiftDown.isPressed()) ringLift.setPower(-0.6);
         else {
             ringLift.setPower(0);
+            doorCommand(Door.OPEN);
             needLiftDown = false;
         }
     }
 
     public void putLiftUp(double speed) {
+        pusherTimer.reset();
         if (isLiftUp.isPressed() && ringsIsNone.isPressed()) ringLift.setPower(speed);
         else if (!isLiftUp.isPressed() || !ringsIsNone.isPressed()){
             ringLift.setPower(0);
@@ -205,11 +260,10 @@ public class Hardware {
 
         if (!needLiftUp) {
             pusherCommand(TowerState.PUSHER_ON);
-            ElapsedTime timer = new ElapsedTime();
-            timer.reset();
-            while (timer.milliseconds() < 1000);
-            pusherCommand(TowerState.STOP);
-            needLiftUp = true;
+            if (pusherTimer.milliseconds() > 1000) {
+                pusherCommand(TowerState.STOP);
+                needLiftUp = true;
+            }
         }
     }
 }

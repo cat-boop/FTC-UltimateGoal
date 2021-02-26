@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.vision;
 
 import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.arcrobotics.ftclib.vision.UGContourRingPipeline;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -34,6 +35,8 @@ public class HsvRingDetectorTest extends LinearOpMode {
 
     private UGContourRingPipeline pipeline;
     private OpenCvCamera camera;
+
+    TelemetryPacket telemetryPacket = new TelemetryPacket();
 
     @Override
     public void runOpMode() {
@@ -69,7 +72,7 @@ public class HsvRingDetectorTest extends LinearOpMode {
 
 //        UGContourRingPipeline.Config.setLowerOrange(new Scalar(100, 110, 0));
 //        UGContourRingPipeline.Config.setUpperOrange(new Scalar(255, 200, 94));
-        camera.openCameraDeviceAsync(() -> camera.startStreaming(CAMERA_WIDTH, CAMERA_HEIGHT, OpenCvCameraRotation.UPSIDE_DOWN));
+        camera.openCameraDeviceAsync(() -> camera.startStreaming(CAMERA_WIDTH, CAMERA_HEIGHT, OpenCvCameraRotation.UPRIGHT));
 
         FtcDashboard.getInstance().startCameraStream(camera, 0);
 
@@ -80,10 +83,11 @@ public class HsvRingDetectorTest extends LinearOpMode {
             UGContourRingPipeline.Config.setUpperOrange(new Scalar(highH, highS, highV));
 
             String height = "[HEIGHT]" + " " + pipeline.getHeight();
-            telemetry.addData("[Ring Stack] >>", height);
-            telemetry.addData("lower orange", UGContourRingPipeline.Config.getLowerOrange());
-            telemetry.addData("upper orange", UGContourRingPipeline.Config.getUpperOrange());
-            telemetry.update();
+
+            telemetryPacket.put("[Ring Stack] >>", height);
+            telemetryPacket.put("lower orange", UGContourRingPipeline.Config.getLowerOrange());
+            telemetryPacket.put("upper orange", UGContourRingPipeline.Config.getUpperOrange());
+            FtcDashboard.getInstance().sendTelemetryPacket(telemetryPacket);
         }
     }
 

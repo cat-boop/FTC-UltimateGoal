@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import java.util.Objects;
@@ -9,6 +10,8 @@ import java.util.Objects;
 import static org.firstinspires.ftc.teamcode.Hardware.encoders;
 import static org.firstinspires.ftc.teamcode.Hardware.Claw;
 import static org.firstinspires.ftc.teamcode.Hardware.TowerState;
+import static org.firstinspires.ftc.teamcode.Hardware.Door;
+import static org.firstinspires.ftc.teamcode.Hardware.ManipulatorState;
 import static org.firstinspires.ftc.teamcode.Hardware.needLiftDown;
 import static org.firstinspires.ftc.teamcode.Hardware.needLiftUp;
 import static org.firstinspires.ftc.teamcode.Hardware.needStartShoot;
@@ -26,9 +29,9 @@ public class TeleOperator extends LinearOpMode {
     PID wobblePID = new PID(0.005, 0, 0);
     int wobblePosition = 0;
 
-    static final int DEBOUNCE_TIME = 200;
+    static final int DEBOUNCE_TIME = 300;
 
-    double shooterLiftPosition = robot.TOWER_ANGLE_MAX, INCREMENT = 0.025;
+    double shooterLiftPosition = 1, INCREMENT = 0.025;
 
     @Override
     public void runOpMode() {
@@ -37,6 +40,8 @@ public class TeleOperator extends LinearOpMode {
 
         robot.init(hardwareMap);
         gyroscope.init(hardwareMap);
+
+        robot.manipulatorCommand(ManipulatorState.ASSEMBLED);
 
         telemetry.addData("Status:", "Initialized");
         telemetry.update();
@@ -61,7 +66,9 @@ public class TeleOperator extends LinearOpMode {
                     Objects.requireNonNull(encoders.get("rightEncoder")).getCurrentPosition());
             telemetry.addData("wobble position", Objects.requireNonNull(encoders.get("wobble")).getCurrentPosition());
             telemetry.addData("shooter position", robot.shooter.getVelocity());
+            telemetry.addData("have ring button pressed", !robot.isLiftUp.isPressed());
             telemetry.addData("none ring button pressed", !robot.ringsIsNone.isPressed());
+            telemetry.addData("pid coef", robot.shooter.getPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER));
             telemetry.update();
         }
 
@@ -88,17 +95,17 @@ public class TeleOperator extends LinearOpMode {
         robot.clawCommand(clawState);
 
         if (gamepad1.right_trigger > 0) {
-            robot.wobble.setPower(gamepad1.right_trigger);
+            robot.manipulator.setPower(gamepad1.right_trigger);
             wobblePosition = Objects.requireNonNull(encoders.get("wobble")).getCurrentPosition();
         }
         else if (gamepad1.left_trigger > 0) {
-            robot.wobble.setPower(-gamepad1.left_trigger);
+            robot.manipulator.setPower(-gamepad1.left_trigger);
             wobblePosition = Objects.requireNonNull(encoders.get("wobble")).getCurrentPosition();
         }
         else {
-            if (clawState == Claw.CLOSE) robot.wobble.setPower(wobblePID.apply(Objects.requireNonNull(encoders.get("wobble")).getCurrentPosition() - wobblePosition));
+            if (clawState == Claw.CLOSE) robot.manipulator.setPower(wobblePID.apply(Objects.requireNonNull(encoders.get("wobble")).getCurrentPosition() - wobblePosition));
             else {
-                robot.wobble.setPower(0);
+                robot.manipulator.setPower(0);
                 wobblePosition = Objects.requireNonNull(encoders.get("wobble")).getCurrentPosition();
             }
         }
@@ -108,10 +115,7 @@ public class TeleOperator extends LinearOpMode {
     public void secondGamepad() {
         if (needLiftUp) robot.putLiftUp(0.8);
         if (needLiftDown) robot.putLiftDown();
-        if (needStartShoot) {
-            robot.shooterCommand(TowerState.SHOOTER_ON);
-            robot.shoot();
-        }
+        if (needStartShoot) robot.shoot();
 
         if (gamepad2.right_trigger > 0) {
             //robot.intake.setPower(gamepad2.right_trigger);
@@ -122,11 +126,11 @@ public class TeleOperator extends LinearOpMode {
 
 
         if (gamepad2.dpad_left && towerAngleTimer.milliseconds() > DEBOUNCE_TIME) {
-            shooterLiftPosition = Math.max(robot.TOWER_ANGLE_MIN, shooterLiftPosition - INCREMENT);
+            shooterLiftPosition = Math.max(robot.getMinTowerAngle(), shooterLiftPosition - INCREMENT);
             towerAngleTimer.reset();
         }
         if (gamepad2.dpad_right && towerAngleTimer.milliseconds() > DEBOUNCE_TIME) {
-            shooterLiftPosition = Math.min(robot.TOWER_ANGLE_MAX, shooterLiftPosition + INCREMENT);
+            shooterLiftPosition = Math.min(robot.getMaxTowerAngle(), shooterLiftPosition + INCREMENT);
             towerAngleTimer.reset();
         }
         robot.towerAngle.setPosition(shooterLiftPosition);
@@ -136,6 +140,10 @@ public class TeleOperator extends LinearOpMode {
             needLiftUp = true;
             needLiftDown = false;
             robot.ringLift.setPower(0);
+            robot.doorCommand(Door.CLOSE);
+            sleep(300);
+            robot.doorCommand(Door.OPEN);
+            sleep(150);
         }
         if (gamepad2.dpad_down) {
             needLiftDown = true;
@@ -164,9 +172,13 @@ public class TeleOperator extends LinearOpMode {
             towerState = TowerState.STOP;
         }
 
-        if (gamepad2.x) {
-            needLiftUp = true;
-            needStartShoot = true;
+        if (gamepad2.x && !needLiftDown) {
+            robot.doorCommand(Door.OPEN);
+            sleep(300);
+        }
+        if (gamepad2.y && !needLiftDown) {
+            robot.doorCommand(Door.CLOSE);
+            sleep(300);
         }
 
         robot.shooterCommand(towerState);
