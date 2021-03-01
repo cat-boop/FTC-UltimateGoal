@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -16,6 +18,7 @@ import static org.firstinspires.ftc.teamcode.Hardware.needLiftDown;
 import static org.firstinspires.ftc.teamcode.Hardware.needLiftUp;
 import static org.firstinspires.ftc.teamcode.Hardware.needStartShoot;
 
+@Config
 @TeleOp(name = "TeleOp")
 public class TeleOperator extends LinearOpMode {
 
@@ -42,6 +45,9 @@ public class TeleOperator extends LinearOpMode {
         gyroscope.init(hardwareMap);
 
         robot.manipulatorCommand(ManipulatorState.ASSEMBLED);
+
+        FtcDashboard dashboard = FtcDashboard.getInstance();
+        telemetry = dashboard.getTelemetry();
 
         telemetry.addData("Status:", "Initialized");
         telemetry.update();

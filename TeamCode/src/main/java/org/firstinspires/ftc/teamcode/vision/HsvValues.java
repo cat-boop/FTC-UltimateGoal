@@ -4,7 +4,6 @@ import com.acmerobotics.dashboard.config.Config;
 
 @Config
 public class HsvValues {
-    public static int lowH = 25, lowS = 100, lowV = 60;
-    public static int highH = 150, highS = 200, highV = 111;
-
+    public static int lowH = 20, lowS = 50, lowV = 55;
+    public static int highH = 170, highS = 200, highV = 115;
 }

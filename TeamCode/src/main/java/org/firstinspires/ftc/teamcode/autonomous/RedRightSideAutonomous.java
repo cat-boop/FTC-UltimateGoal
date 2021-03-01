@@ -84,7 +84,6 @@ public class RedRightSideAutonomous extends LinearOpMode {
         gyroscope.init(hardwareMap);
         camera.init(hardwareMap, telemetry);
 
-        //robot.clawCommand(Claw.CLOSE);
 
         // Send telemetry message to signify robot waiting;
         telemetry.addData("Status", "Initialized");    //
@@ -106,94 +105,72 @@ public class RedRightSideAutonomous extends LinearOpMode {
         returner();
 
         robot.clawCommand(Claw.CLOSE);
-        sleep(1000);
+        sleep(200);
+
+        wobblePosition = 0;
+
+        robot.shooterCommand(TowerState.SHOOTER_ON);
+
+        driveByInches(DRIVE_SPEED, 0, 50);
+        turnToAngle(-SIGN_ANGLE * 15);
+
+        shoot();
+
+        driveByInches(DRIVE_SPEED, 0, -12);
+
+        sleep(7500);
 
         if (isNone()) {
-            wobblePosition = 100;
-            driveByInches(DRIVE_SPEED, 0, 60);
             wobblePosition = 50;
             turnToAngle(SIGN_ANGLE * 30);
-
-            //wobbleTimer = new ElapsedTime();
-            //wobbleTimer.reset();
-            //while (wobbleTimer.milliseconds() < 200) robot.wobble.setPower(0.3);
+            driveByInches(DRIVE_SPEED, 0, 16);
 
             robot.clawCommand(Claw.OPEN);
-
-            robot.shooterCommand(TowerState.SHOOTER_ON);
-            turnToAngle(0);
-            driveByInches(DRIVE_SPEED, -SIGN_X * 20, -20);
-
-            shoot();
-
-            wobblePosition = 530;
-            driveByInches(0.4, SIGN_X * 2, -13);
             sleep(300);
-            robot.clawCommand(Claw.CLOSE);
-            sleep(100);
 
-            wobblePosition = 100;
-            //turnToAngle(-205);
-            turnToAngle(SIGN_ANGLE * 30);
-            driveByInches(DRIVE_SPEED, 0, 40);
-
-            robot.clawCommand(Claw.OPEN);
-            sleep(200);
-            driveByInches(DRIVE_SPEED, 0, -4);
-            driveByInches(DRIVE_SPEED, -SIGN_X * 13, 0);
+            driveByInches(DRIVE_SPEED, 0, -2);
+            turnToAngle(0);
+            driveByInches(DRIVE_SPEED, -SIGN_X * 10, 0);
+            driveByInches(DRIVE_SPEED, 0, 15);
         }
 
         if (isOne()) {
-            wobblePosition = 100;
-
-            robot.shooterCommand(TowerState.SHOOTER_ON);
-            driveByInches(DRIVE_SPEED, 0, 40);
-            driveByInches(DRIVE_SPEED, -SIGN_X * 10, 10);
-            wobblePosition = 0;
-
-            turnToAngle(-SIGN_ANGLE * 10);
-            shoot();
             turnToAngle(0);
 
-            wobblePosition = 50;
-            driveByInches(DRIVE_SPEED, 0, 30);
+            wobblePosition = 60;
+            driveByInches(DRIVE_SPEED, -SIGN_X * 5, 40);
 
             robot.clawCommand(Claw.OPEN);
             sleep(300);
 
-            driveByInches(DRIVE_SPEED, 0, -10);
+            driveByInches(DRIVE_SPEED, 0, -6);
         }
 
         if (isFour()) {
-            wobblePosition = 100;
-            robot.shooterCommand(TowerState.SHOOTER_ON);
-            driveByInches(DRIVE_SPEED, 0, 40);
-            driveByInches(DRIVE_SPEED, -SIGN_X * 10, 10);
-
-            turnToAngle(-SIGN_ANGLE * 10);
-            shoot();
-            turnToAngle(0);
-
             wobblePosition = 50;
-            driveByInches(DRIVE_SPEED, SIGN_X * 15, 55);
-            turnToAngle(SIGN_ANGLE * 20);
+            turnToAngle(SIGN_ANGLE * 10);
+            driveByInches(DRIVE_SPEED, 0, 72);
 
+            turnToAngle(SIGN_ANGLE * 30);
             robot.clawCommand(Claw.OPEN);
+            sleep(300);
 
+            driveByInches(DRIVE_SPEED, 0, -2);
             turnToAngle(0);
-            driveByInches(DRIVE_SPEED, 0, -40);
+            driveByInches(DRIVE_SPEED, -SIGN_X * 10, 0);
+            driveByInches(DRIVE_SPEED, 0, -30);
         }
     }
 
     public void returner() {
         robot.manipulatorCommand(ManipulatorState.ASSEMBLED);
-        sleep(1000);
+        sleep(500);
 
         double wobbleTime = wobbleTimer.milliseconds();
         while (wobbleTimer.milliseconds() - wobbleTime < 1000 && opModeIsActive()) robot.manipulator.setPower(0.6);
         robot.manipulator.setPower(0);
 
-        sleep(1000);
+        sleep(500);
 
         Objects.requireNonNull(encoders.get("wobble")).setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         Objects.requireNonNull(encoders.get("wobble")).setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
@@ -209,17 +186,23 @@ public class RedRightSideAutonomous extends LinearOpMode {
     public boolean isFour() { return numberOfFour >= numberOfNone && numberOfFour >= numberOfOne; }
 
     public void shoot() {
-        double shootTime = sleepTimer.milliseconds();
-        while (opModeIsActive() && sleepTimer.milliseconds() - shootTime < 5000) {
-            robot.putLiftUp(0.2);
-            if (!robot.ringsIsNone.isPressed()) break;
+        for (int i = 0; i < 3 && !isStopRequested(); i++) {
+            double shootTime = sleepTimer.milliseconds();
+            while (robot.isLiftUp.isPressed() && robot.ringsIsNone.isPressed() && sleepTimer.milliseconds() - shootTime < 2000) {
+                robot.putLiftUp(0.3);
+            }
             robot.pusherCommand(TowerState.PUSHER_ON);
-            sleep(1000);
-            //robot.pusherCommand(TowerState.STOP);
-            //sleep(300);
+
+            if (i != 2) {
+                robot.ringLift.setPower(-0.1);
+                sleep(100);
+                robot.ringLift.setPower(0);
+            }
+            sleep(1500);
+
+            robot.pusherCommand(TowerState.STOP);
         }
         robot.shooterCommand(TowerState.STOP);
-        robot.pusherCommand(TowerState.STOP);
     }
 
     public void driveByInches(double speed, double x, double y) {

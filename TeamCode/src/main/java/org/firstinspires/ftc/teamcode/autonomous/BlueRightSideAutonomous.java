@@ -1,36 +1,4 @@
-/* Copyright (c) 2017 FIRST. All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted (subject to the limitations in the disclaimer below) provided that
- * the following conditions are met:
- *
- * Redistributions of source code must retain the above copyright notice, this list
- * of conditions and the following disclaimer.
- *
- * Redistributions in binary form must reproduce the above copyright notice, this
- * list of conditions and the following disclaimer in the documentation and/or
- * other materials provided with the distribution.
- *
- * Neither the name of FIRST nor the names of its contributors may be used to endorse or
- * promote products derived from this software without specific prior written permission.
- *
- * NO EXPRESS OR IMPLIED LICENSES TO ANY PARTY'S PATENT RIGHTS ARE GRANTED BY THIS
- * LICENSE. THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
- * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
-
 package org.firstinspires.ftc.teamcode.autonomous;
-
-import java.lang.Math;
-import java.util.Objects;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -42,13 +10,15 @@ import org.firstinspires.ftc.teamcode.Hardware;
 import org.firstinspires.ftc.teamcode.PID;
 import org.firstinspires.ftc.teamcode.vision.CameraHSV;
 
-import static org.firstinspires.ftc.teamcode.Hardware.encoders;
-import static org.firstinspires.ftc.teamcode.Hardware.Claw;
-import static org.firstinspires.ftc.teamcode.Hardware.TowerState;
-import static org.firstinspires.ftc.teamcode.Hardware.ManipulatorState;
+import java.util.Objects;
 
-@Autonomous(name="Red left side autonomous")
-public class RedLeftSideAutonomous extends LinearOpMode {
+import static org.firstinspires.ftc.teamcode.Hardware.encoders;
+import static org.firstinspires.ftc.teamcode.Hardware.ManipulatorState;
+import static org.firstinspires.ftc.teamcode.Hardware.TowerState;
+import static org.firstinspires.ftc.teamcode.Hardware.Claw;
+
+@Autonomous (name = "Blue right side autonomous")
+public class BlueRightSideAutonomous extends LinearOpMode {
 
     /* Declare OpMode members. */
     Hardware robot   = new Hardware();   // Use a Pushbot's hardware
@@ -62,9 +32,9 @@ public class RedLeftSideAutonomous extends LinearOpMode {
 
     static final double     INCHES_PER_TIC          = 0.0030326975625;
     static final double     WHEEL_DIAMETER_INCHES   = 1.1614173228346456692913385826772 * 2;
-    static final double     DRIVE_SPEED             = 0.8;
-    static final double     SIGN_X                  = -1;
-    static final double     SIGN_ANGLE              = -1;
+    static final double     DRIVE_SPEED             = 0.7;
+    static final double     SIGN_X                  = 1;
+    static final double     SIGN_ANGLE              = 1;
 
     static final int        COUNTS_PER_MOTOR_REV    = 2400;
     static final double     COUNTS_PER_INCH         = COUNTS_PER_MOTOR_REV / (WHEEL_DIAMETER_INCHES * 3.1415);
@@ -108,56 +78,55 @@ public class RedLeftSideAutonomous extends LinearOpMode {
         robot.clawCommand(Claw.CLOSE);
         sleep(500);
 
-        wobblePosition = 0;
+        wobblePosition = 60;
         robot.shooterCommand(TowerState.SHOOTER_ON);
-        driveByInches(DRIVE_SPEED, -SIGN_X * 5, 55);
+        driveByInches(DRIVE_SPEED, -SIGN_X * 10, 55 - 2);
 
-        turnToAngle(SIGN_ANGLE * 1);
-        shoot();
+        shootPowerShot();
 
         if (isNone()) {
-            driveByInches(DRIVE_SPEED, SIGN_X * 5, 10);
+            driveByInches(DRIVE_SPEED, 0, 16);
             turnToAngle(SIGN_ANGLE * 90);
 
-            wobblePosition = 60;
-            driveByInches(DRIVE_SPEED, 0, 23);
+            wobblePosition = 100;
+            driveByInches(DRIVE_SPEED, 0, 33);
 
             robot.clawCommand(Claw.OPEN);
             sleep(200);
 
-            driveByInches(DRIVE_SPEED, 0, -40);
+            driveByInches(DRIVE_SPEED, 0, -40 + 12);
         }
 
         if (isOne()) {
-            driveByInches(DRIVE_SPEED, 0, 8 + 24);
+            driveByInches(DRIVE_SPEED, 0, 16 + 24);
             turnToAngle(SIGN_ANGLE * 90);
 
             wobblePosition = 50;
-            driveByInches(DRIVE_SPEED, 0, 8);
+            driveByInches(DRIVE_SPEED, 0, 20);
 
             robot.clawCommand(Claw.OPEN);
             sleep(200);
 
-            driveByInches(DRIVE_SPEED, 0, -10);
+            driveByInches(DRIVE_SPEED, 0, -25);
             turnToAngle(0);
 
-            driveByInches(DRIVE_SPEED, 0, -13 - 10);
+            driveByInches(DRIVE_SPEED, 0, -16 - 24);
         }
 
         if (isFour()) {
-            driveByInches(DRIVE_SPEED, 0, 9 + 40);
+            driveByInches(DRIVE_SPEED, 0, 16 + 48);
             turnToAngle(SIGN_ANGLE * 90);
 
             wobblePosition = 50;
-            driveByInches(DRIVE_SPEED, 0, 10 + 24);
+            driveByInches(DRIVE_SPEED, 0, 50);
 
             robot.clawCommand(Claw.OPEN);
             sleep(200);
 
-            driveByInches(DRIVE_SPEED, 0, -10 - 24);
+            driveByInches(DRIVE_SPEED, 0, -50);
             turnToAngle(0);
 
-            driveByInches(DRIVE_SPEED, 0, -13 - 25);
+            driveByInches(DRIVE_SPEED, 0, -16 - 48);
         }
         // */
     }
@@ -187,8 +156,23 @@ public class RedLeftSideAutonomous extends LinearOpMode {
     public boolean isOne()  { return numberOfOne >= numberOfNone && numberOfOne >= numberOfFour && !isStopRequested(); }
     public boolean isFour() { return numberOfFour >= numberOfNone && numberOfFour >= numberOfOne && !isStopRequested(); }
 
+    public void shoot() {
+        double shootTime = sleepTimer.milliseconds();
+        while (opModeIsActive() && sleepTimer.milliseconds() - shootTime < 3000) {
+            robot.putLiftUp(0.2);
+            if (!robot.ringsIsNone.isPressed()) break;
+            robot.pusherCommand(TowerState.PUSHER_ON);
+            sleep(1000);
+            //robot.pusherCommand(TowerState.STOP);
+            //sleep(300);
+        }
+        robot.shooterCommand(TowerState.STOP);
+        robot.pusherCommand(TowerState.STOP);
+    }
+
     public void shootPowerShot() {
-        robot.towerAngle.setPosition(0.95);
+        robot.shooterCommand(TowerState.SHOOTER_ON);
+        sleep(500);
         for (int i = 0; i < 3 && !isStopRequested(); i++) {
             double shootTime = sleepTimer.milliseconds();
             while (robot.isLiftUp.isPressed() && robot.ringsIsNone.isPressed() && sleepTimer.milliseconds() - shootTime < 2000) {
@@ -207,26 +191,6 @@ public class RedLeftSideAutonomous extends LinearOpMode {
             if (i != 2) turnToAngle(-SIGN_ANGLE * 5 * (i + 1));
         }
         turnToAngle(0);
-        robot.shooterCommand(TowerState.STOP);
-    }
-
-    public void shoot() {
-        for (int i = 0; i < 3 && !isStopRequested(); i++) {
-            double shootTime = sleepTimer.milliseconds();
-            while (robot.isLiftUp.isPressed() && robot.ringsIsNone.isPressed() && sleepTimer.milliseconds() - shootTime < 2000) {
-                robot.putLiftUp(0.3);
-            }
-            robot.pusherCommand(TowerState.PUSHER_ON);
-
-            if (i != 2) {
-                robot.ringLift.setPower(-0.1);
-                sleep(100);
-                robot.ringLift.setPower(0);
-            }
-            sleep(1500);
-
-            robot.pusherCommand(TowerState.STOP);
-        }
         robot.shooterCommand(TowerState.STOP);
     }
 
@@ -316,3 +280,4 @@ public class RedLeftSideAutonomous extends LinearOpMode {
         robot.manipulator.setPower(wobblePID.apply(Objects.requireNonNull(encoders.get("wobble")).getCurrentPosition() - wobblePosition));
     }
 }
+
