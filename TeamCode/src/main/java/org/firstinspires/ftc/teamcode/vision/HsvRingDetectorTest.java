@@ -64,14 +64,9 @@ public class HsvRingDetectorTest extends LinearOpMode {
 
         UGContourRingPipeline.Config.setHORIZON(HORIZON);
 
-        UGContourRingPipeline.Config.setLowerOrange(new Scalar(75, 130, 50));
-        UGContourRingPipeline.Config.setUpperOrange(new Scalar(230, 200, 115));
+        UGContourRingPipeline.Config.setLowerOrange(new Scalar(0, 0, 0));
+        UGContourRingPipeline.Config.setUpperOrange(new Scalar(255, 255, 255));
 
-//        UGContourRingPipeline.Config.setLowerOrange(new Scalar(50, 50, 70));
-//        UGContourRingPipeline.Config.setUpperOrange(new Scalar(255, 200, 106));
-
-//        UGContourRingPipeline.Config.setLowerOrange(new Scalar(100, 110, 0));
-//        UGContourRingPipeline.Config.setUpperOrange(new Scalar(255, 200, 94));
         camera.openCameraDeviceAsync(() -> camera.startStreaming(CAMERA_WIDTH, CAMERA_HEIGHT, OpenCvCameraRotation.UPRIGHT));
 
         FtcDashboard.getInstance().startCameraStream(camera, 0);
