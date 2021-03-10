@@ -64,7 +64,14 @@ public class TeleOperator extends LinearOpMode {
 
         while (!isStopRequested()) {
 
-            robot.shooter.setVelocityPIDFCoefficients(kP, kI, kD, kF);
+            //robot.shooter.setVelocityPIDFCoefficients(kP, kI, kD, kF);
+
+            if (needLiftUp) robot.putLiftUp(1);
+            if (needLiftDown) robot.putLiftDown();
+            if (needStartShoot) robot.shoot();
+
+            robot.shooterCommand(towerState);
+            robot.pusherCommand(towerState);
 
             firstGamepad();
 
@@ -91,66 +98,17 @@ public class TeleOperator extends LinearOpMode {
         robot.setPower(-gamepad1.right_stick_y, -gamepad1.left_stick_x, -gamepad1.right_stick_x);
         //robot.setPower(-gamepad2.left_stick_y, -gamepad2.right_stick_x, -gamepad2.left_stick_x);
 
-        if (gamepad1.a && wobbleTimer.milliseconds() > DEBOUNCE_TIME) {
-            switch (clawState) {
-                case OPEN:
-                    clawState = Claw.CLOSE;
-                    break;
-                case CLOSE:
-                    clawState = Claw.OPEN;
-                    break;
-            }
-            wobbleTimer.reset();
-        }
-        if (gamepad1.x) clawState = Claw.OPEN;
-        if (gamepad1.y) clawState = Claw.CLOSE;
-        robot.clawCommand(clawState);
-
-        if (gamepad1.right_trigger > 0) {
-            robot.manipulator.setPower(gamepad1.right_trigger);
-            wobblePosition = Objects.requireNonNull(encoders.get("wobble")).getCurrentPosition();
-        }
-        else if (gamepad1.left_trigger > 0) {
-            robot.manipulator.setPower(-gamepad1.left_trigger);
-            wobblePosition = Objects.requireNonNull(encoders.get("wobble")).getCurrentPosition();
-        }
-        else {
-            if (clawState == Claw.CLOSE) robot.manipulator.setPower(wobblePID.apply(Objects.requireNonNull(encoders.get("wobble")).getCurrentPosition() - wobblePosition));
-            else {
-                robot.manipulator.setPower(0);
-                wobblePosition = Objects.requireNonNull(encoders.get("wobble")).getCurrentPosition();
-            }
-        }
-
-        if (gamepad1.right_bumper) robot.shooter.setVelocity(2000);
-        if (gamepad1.left_bumper) robot.shooter.setVelocity(0);
-    }
-
-    public void secondGamepad() {
-        if (needLiftUp) robot.putLiftUp(0.8);
-        if (needLiftDown) robot.putLiftDown();
-        if (needStartShoot) robot.shoot();
-
-        if (gamepad2.right_trigger > 0) {
-            //robot.intake.setPower(gamepad2.right_trigger);
-            if (robot.isLiftDown.isPressed()) needLiftDown = true;
-            else robot.intake.setPower(gamepad2.right_trigger);
-        }
-        else robot.intake.setPower(-gamepad2.left_trigger);
-
-
-        if (gamepad2.dpad_left && towerAngleTimer.milliseconds() > DEBOUNCE_TIME) {
+        if (gamepad1.dpad_left && towerAngleTimer.milliseconds() > DEBOUNCE_TIME) {
             shooterLiftPosition = 0.925;
             towerAngleTimer.reset();
         }
-        if (gamepad2.dpad_right && towerAngleTimer.milliseconds() > DEBOUNCE_TIME) {
+        if (gamepad1.dpad_right && towerAngleTimer.milliseconds() > DEBOUNCE_TIME) {
             shooterLiftPosition = Math.min(robot.getMaxTowerAngle(), shooterLiftPosition + INCREMENT);
             towerAngleTimer.reset();
         }
         robot.towerAngle.setPosition(shooterLiftPosition);
 
-
-        if (gamepad2.dpad_up) {
+        if (gamepad1.dpad_up) {
             needLiftUp = true;
             needLiftDown = false;
             robot.ringLift.setPower(0);
@@ -159,16 +117,16 @@ public class TeleOperator extends LinearOpMode {
             robot.doorCommand(Door.OPEN);
             sleep(150);
         }
-        if (gamepad2.dpad_down) {
+        if (gamepad1.dpad_down) {
             needLiftDown = true;
             needLiftUp = false;
             robot.ringLift.setPower(0);
         }
 
-        if (gamepad2.right_bumper) robot.ringLift.setPower(0.5);
-        else if (!needLiftUp && !needLiftDown) robot.ringLift.setPower(gamepad2.left_bumper ? -0.5 : 0);
+        if (gamepad1.right_bumper) robot.ringLift.setPower(0.5);
+        else if (!needLiftUp && !needLiftDown) robot.ringLift.setPower(gamepad1.left_bumper ? -0.5 : 0);
 
-        if (gamepad2.a && towerTimer.milliseconds() > DEBOUNCE_TIME) {
+        if (gamepad1.a && towerTimer.milliseconds() > DEBOUNCE_TIME) {
             switch (towerState) {
                 case STOP:
                     towerState = TowerState.SHOOTER_ON;
@@ -182,21 +140,58 @@ public class TeleOperator extends LinearOpMode {
             }
             towerTimer.reset();
         }
-        if (gamepad2.b) {
+        if (gamepad1.b) {
             towerState = TowerState.STOP;
         }
 
-        if (gamepad2.x && !needLiftDown) {
+        if (gamepad1.x && !needLiftDown) {
             robot.doorCommand(Door.OPEN);
             sleep(300);
         }
-        if (gamepad2.y && !needLiftDown) {
+        if (gamepad1.y && !needLiftDown) {
             robot.doorCommand(Door.CLOSE);
             sleep(300);
         }
+    }
 
-        robot.shooterCommand(towerState);
-        robot.pusherCommand(towerState);
+    public void secondGamepad() {
+        if (gamepad2.right_bumper) {
+            //robot.intake.setPower(gamepad2.right_trigger);
+            if (robot.isLiftDown.isPressed()) needLiftDown = true;
+            else robot.intake.setPower(gamepad2.right_bumper ? 1 : 0);
+        }
+        else robot.intake.setPower(gamepad2.left_bumper ? -1 : 0);
+
+        if (gamepad2.a && wobbleTimer.milliseconds() > DEBOUNCE_TIME) {
+            switch (clawState) {
+                case OPEN:
+                    clawState = Claw.CLOSE;
+                    break;
+                case CLOSE:
+                    clawState = Claw.OPEN;
+                    break;
+            }
+            wobbleTimer.reset();
+        }
+        if (gamepad2.x) clawState = Claw.OPEN;
+        if (gamepad2.y) clawState = Claw.CLOSE;
+        robot.clawCommand(clawState);
+
+        if (gamepad2.right_trigger > 0) {
+            robot.manipulator.setPower(gamepad2.right_trigger);
+            wobblePosition = Objects.requireNonNull(encoders.get("wobble")).getCurrentPosition();
+        }
+        else if (gamepad2.left_trigger > 0) {
+            robot.manipulator.setPower(-gamepad2.left_trigger);
+            wobblePosition = Objects.requireNonNull(encoders.get("wobble")).getCurrentPosition();
+        }
+        else {
+            if (clawState == Claw.CLOSE) robot.manipulator.setPower(wobblePID.apply(Objects.requireNonNull(encoders.get("wobble")).getCurrentPosition() - wobblePosition));
+            else {
+                robot.manipulator.setPower(0);
+                wobblePosition = Objects.requireNonNull(encoders.get("wobble")).getCurrentPosition();
+            }
+        }
     }
 
     public void sleep(int milliseconds) {
