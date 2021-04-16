@@ -1,7 +1,11 @@
 package org.firstinspires.ftc.teamcode;
 
+<<<<<<< HEAD
 import androidx.appcompat.widget.ToolbarWidgetWrapper;
 
+=======
+import com.acmerobotics.dashboard.config.Config;
+>>>>>>> fb325cd8664bd9aff79d35a040c503450a6919c2
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -12,6 +16,11 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import java.util.HashMap;
 import java.util.Map;
+
+import static org.firstinspires.ftc.teamcode.PIDFValues.kP;
+import static org.firstinspires.ftc.teamcode.PIDFValues.kI;
+import static org.firstinspires.ftc.teamcode.PIDFValues.kD;
+import static org.firstinspires.ftc.teamcode.PIDFValues.kF;
 
 public class Hardware {
 
@@ -112,7 +121,7 @@ public class Hardware {
 
         clawCommand(Claw.OPEN);
 
-        towerAngle.setPosition(TOWER_ANGLE_MAX);
+        towerAngle.setPosition(0.975);
 
         //motor mode's
         rightRear.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -127,7 +136,7 @@ public class Hardware {
 
         shooter.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         shooter.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        shooter.setVelocityPIDFCoefficients(500, 0, 0, 0);
+        shooter.setVelocityPIDFCoefficients(kP, kI, kD, kF);
 
         //encoders initialization
         encoders.put("leftEncoder", leftRear);
@@ -182,7 +191,7 @@ public class Hardware {
     }
 
     public void manipulatorCommand(ManipulatorState control) {
-        double SERVO_WOBBLE_OPEN = 0.65, SERVO_WOBBLE_CLOSE = 0;
+        double SERVO_WOBBLE_OPEN = 0.65, SERVO_WOBBLE_CLOSE = 0.2;
         if (control == ManipulatorState.ASSEMBLED) manipulatorReturner.setPosition(SERVO_WOBBLE_OPEN);
         if (control == ManipulatorState.DISASSEMBLED) manipulatorReturner.setPosition(SERVO_WOBBLE_CLOSE);
     }
@@ -235,11 +244,15 @@ public class Hardware {
     public void shooterCommand(TowerState towerState) {
         if (toshoot == false) shooter.setDirection(DcMotorSimple.Direction.REVERSE);
         if (towerState == TowerState.STOP) shooter.setVelocity(0);
+<<<<<<< HEAD
         if (towerState == TowerState.SHOOTER_ON)  shooter.setVelocity(1800);
     }
 
     public void shooterreversation(ShooterReversation shooterReversation){
         if()
+=======
+        if (towerState == TowerState.SHOOTER_ON) shooter.setVelocity(2500);
+>>>>>>> fb325cd8664bd9aff79d35a040c503450a6919c2
     }
 
     public void pusherCommand(TowerState towerState) {

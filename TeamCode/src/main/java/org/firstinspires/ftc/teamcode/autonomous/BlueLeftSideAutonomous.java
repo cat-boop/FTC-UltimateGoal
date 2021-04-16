@@ -114,13 +114,11 @@ public class BlueLeftSideAutonomous extends LinearOpMode {
         driveByInches(DRIVE_SPEED, 0, 50);
         //turnToAngle(SIGN_ANGLE * 5);
 
-        sleep(5000);
-
         shoot();
 
         driveByInches(DRIVE_SPEED, 0, -12);
 
-
+        sleep(8000);
 
         if (isNone()) {
             turnToAngle(SIGN_ANGLE * 15);
