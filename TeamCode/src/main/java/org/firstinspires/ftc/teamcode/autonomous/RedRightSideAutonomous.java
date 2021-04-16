@@ -58,6 +58,7 @@ public class RedRightSideAutonomous extends LinearOpMode {
     ElapsedTime sleepTimer = new ElapsedTime();
     ElapsedTime wobbleTimer = new ElapsedTime();
 
+
     PID wobblePID = new PID(0.01, 0, 0);
 
     static final double     INCHES_PER_TIC          = 0.0030326975625;
@@ -119,6 +120,7 @@ public class RedRightSideAutonomous extends LinearOpMode {
         driveByInches(DRIVE_SPEED, 0, -12);
 
         sleep(7500);
+
 
         if (isNone()) {
             wobblePosition = 50;
@@ -203,6 +205,16 @@ public class RedRightSideAutonomous extends LinearOpMode {
             robot.pusherCommand(TowerState.STOP);
         }
         robot.shooterCommand(TowerState.STOP);
+    }
+
+    public void shootNew(){
+        robot.shooterCommand(TowerState.SHOOTER_ON);
+        sleep(1000);
+        for(int i=0; i<3; i++){
+            robot.pusherCommand(TowerState.PUSHER_ON);
+            robot.pusherCommand(TowerState.PUSHER_BACK);
+            sleep(1500);
+        }
     }
 
     public void driveByInches(double speed, double x, double y) {

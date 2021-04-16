@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode;
 
+import androidx.appcompat.widget.ToolbarWidgetWrapper;
+
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -19,11 +21,16 @@ public class Hardware {
     private final double RING_PUSHER_STOP = 0.5, RING_PUSHER_MOVE = 1;
     private final double LIFT_DOOR_LEFT_OPEN = 0.6, LIFT_DOOR_LEFT_CLOSE = 0.46;
     private final double LIFT_DOOR_RIGHT_OPEN = 0.65, LIFT_DOOR_RIGHT_CLOSE = 0.75;
+    private final double RING_PUSHER_ON = 1, RING_PUSHER_BACK = 0;
 
     public double getMinTowerAngle() { return 0.5; }
     public double getMaxTowerAngle() { return TOWER_ANGLE_MAX; }
 
+    public boolean toshoot = true;
+
     public Servo manipulatorReturner = null;
+
+    public Servo ringPusherNew = null;
 
     public Servo liftDoorLeft = null;
     public Servo liftDoorRight = null;
@@ -83,6 +90,8 @@ public class Hardware {
         ringPusherLeft = hardwareMap.get(Servo.class, "ringPusherLeft");
         ringPusherRight = hardwareMap.get(Servo.class, "ringPusherRight");
 
+        ringPusherNew = hardwareMap.get(Servo.class, "ringpusher");
+
         servoClawLeft = hardwareMap.get(Servo.class, "servoClawLeft");
         servoClawRight = hardwareMap.get(Servo.class, "servoClawRight");
 
@@ -106,8 +115,8 @@ public class Hardware {
         towerAngle.setPosition(TOWER_ANGLE_MAX);
 
         //motor mode's
-        leftRear.setDirection(DcMotorSimple.Direction.REVERSE);
-        leftFront.setDirection(DcMotorSimple.Direction.REVERSE);
+        rightRear.setDirection(DcMotorSimple.Direction.REVERSE);
+        rightFront.setDirection(DcMotorSimple.Direction.REVERSE);
 
         ringLift.setDirection(DcMotorSimple.Direction.REVERSE);
 
@@ -214,22 +223,31 @@ public class Hardware {
     public enum TowerState {
         STOP,
         SHOOTER_ON,
+        PUSHER_BACK,
         PUSHER_ON
     }
 
+    public enum ShooterReversation{
+        TOSHOOT,
+        TOINTAKE
+    }
+
     public void shooterCommand(TowerState towerState) {
+        if (toshoot == false) shooter.setDirection(DcMotorSimple.Direction.REVERSE);
         if (towerState == TowerState.STOP) shooter.setVelocity(0);
-        if (towerState == TowerState.SHOOTER_ON)  shooter.setVelocity(2400);
+        if (towerState == TowerState.SHOOTER_ON)  shooter.setVelocity(1800);
+    }
+
+    public void shooterreversation(ShooterReversation shooterReversation){
+        if()
     }
 
     public void pusherCommand(TowerState towerState) {
-        if (towerState == TowerState.STOP) {
-            ringPusherLeft.setPosition(RING_PUSHER_STOP);
-            ringPusherRight.setPosition(RING_PUSHER_STOP);
-        }
         if (towerState == TowerState.PUSHER_ON) {
-            ringPusherLeft.setPosition(-RING_PUSHER_MOVE);
-            ringPusherRight.setPosition(RING_PUSHER_MOVE);
+            ringPusherNew.setPosition(RING_PUSHER_ON);
+        }
+        if(towerState == TowerState.PUSHER_BACK){
+            ringPusherNew.setPosition(RING_PUSHER_BACK);
         }
     }
 

@@ -29,6 +29,7 @@ public class TeleOperator extends LinearOpMode {
     TowerState towerState = TowerState.STOP;
     Claw clawState = Claw.OPEN;
 
+
     PID wobblePID = new PID(0.005, 0, 0);
     int wobblePosition = 0;
 
@@ -125,8 +126,8 @@ public class TeleOperator extends LinearOpMode {
 
         if (gamepad2.right_trigger > 0) {
             //robot.intake.setPower(gamepad2.right_trigger);
-            if (robot.isLiftDown.isPressed()) needLiftDown = true;
-            else robot.intake.setPower(gamepad2.right_trigger);
+            //if (robot.isLiftDown.isPressed()) needLiftDown = true;
+            robot.intake.setPower(gamepad2.right_trigger);
         }
         else robot.intake.setPower(-gamepad2.left_trigger);
 
