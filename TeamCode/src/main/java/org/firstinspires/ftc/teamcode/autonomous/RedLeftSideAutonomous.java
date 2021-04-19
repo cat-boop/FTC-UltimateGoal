@@ -113,7 +113,7 @@ public class RedLeftSideAutonomous extends LinearOpMode {
         driveByInches(DRIVE_SPEED, -SIGN_X * 5, 55);
 
         turnToAngle(SIGN_ANGLE * 1);
-        shoot();
+        //shoot();
 
         if (isNone()) {
             driveByInches(DRIVE_SPEED, SIGN_X * 5, 10);
@@ -187,47 +187,58 @@ public class RedLeftSideAutonomous extends LinearOpMode {
     public boolean isOne()  { return numberOfOne >= numberOfNone && numberOfOne >= numberOfFour && !isStopRequested(); }
     public boolean isFour() { return numberOfFour >= numberOfNone && numberOfFour >= numberOfOne && !isStopRequested(); }
 
-    public void shootPowerShot() {
-        robot.towerAngle.setPosition(0.95);
-        for (int i = 0; i < 3 && !isStopRequested(); i++) {
-            double shootTime = sleepTimer.milliseconds();
-            while (robot.isLiftUp.isPressed() && robot.ringsIsNone.isPressed() && sleepTimer.milliseconds() - shootTime < 2000) {
-                robot.putLiftUp(0.3);
-            }
-            robot.pusherCommand(TowerState.PUSHER_ON);
+    /*
+        public void shootPowerShot() {
+            robot.towerAngle.setPosition(0.95);
+            for (int i = 0; i < 3 && !isStopRequested(); i++) {
+                double shootTime = sleepTimer.milliseconds();
+                while (robot.isLiftUp.isPressed() && robot.ringsIsNone.isPressed() && sleepTimer.milliseconds() - shootTime < 2000) {
+                    //robot.putLiftUp(0.3);
+                }
+                robot.pusherCommand(TowerState.PUSHER_ON);
 
-            if (i != 2) {
-                robot.ringLift.setPower(-0.1);
-                sleep(100);
-                robot.ringLift.setPower(0);
-            }
+                if (i != 2) {
+                    robot.ringLift.setPower(-0.1);
+                    sleep(100);
+                    robot.ringLift.setPower(0);
+                }
 
-            sleep(1500);
-            robot.pusherCommand(TowerState.STOP);
-            if (i != 2) turnToAngle(-SIGN_ANGLE * 5 * (i + 1));
+                sleep(1500);
+                robot.pusherCommand(TowerState.STOP);
+                if (i != 2) turnToAngle(-SIGN_ANGLE * 5 * (i + 1));
+            }
+            turnToAngle(0);
+            robot.shooterCommand(TowerState.STOP);
         }
-        turnToAngle(0);
-        robot.shooterCommand(TowerState.STOP);
-    }
 
-    public void shoot() {
-        for (int i = 0; i < 3 && !isStopRequested(); i++) {
-            double shootTime = sleepTimer.milliseconds();
-            while (robot.isLiftUp.isPressed() && robot.ringsIsNone.isPressed() && sleepTimer.milliseconds() - shootTime < 2000) {
-                robot.putLiftUp(0.3);
+        public void shoot() {
+            for (int i = 0; i < 3 && !isStopRequested(); i++) {
+                double shootTime = sleepTimer.milliseconds();
+                while (robot.isLiftUp.isPressed() && robot.ringsIsNone.isPressed() && sleepTimer.milliseconds() - shootTime < 2000) {
+                    //robot.putLiftUp(0.3);
+                }
+                robot.pusherCommand(TowerState.PUSHER_ON);
+
+                if (i != 2) {
+                    robot.ringLift.setPower(-0.1);
+                    sleep(100);
+                    robot.ringLift.setPower(0);
+                }
+                sleep(1500);
+
+                robot.pusherCommand(TowerState.STOP);
             }
-            robot.pusherCommand(TowerState.PUSHER_ON);
-
-            if (i != 2) {
-                robot.ringLift.setPower(-0.1);
-                sleep(100);
-                robot.ringLift.setPower(0);
-            }
-            sleep(1500);
-
-            robot.pusherCommand(TowerState.STOP);
+            robot.shooterCommand(TowerState.STOP);
         }
-        robot.shooterCommand(TowerState.STOP);
+    */
+    public void shootNew() {
+        robot.shooterCommand(TowerState.SHOOTER_ON);
+        sleep(1000);
+        for (int i = 0; i < 3; i++) {
+            robot.pusherCommand(Hardware.PusherState.PUSHER_ON);
+            robot.pusherCommand(Hardware.PusherState.PUSHER_BACK);
+            sleep(1500);
+        }
     }
 
     public void driveByInches(double speed, double x, double y) {

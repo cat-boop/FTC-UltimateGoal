@@ -82,7 +82,7 @@ public class BlueRightSideAutonomous extends LinearOpMode {
         robot.shooterCommand(TowerState.SHOOTER_ON);
         driveByInches(DRIVE_SPEED, -SIGN_X * 10, 55 - 2);
 
-        shootPowerShot();
+        //shootPowerShot();
 
         if (isNone()) {
             driveByInches(DRIVE_SPEED, 0, 16);
@@ -155,43 +155,52 @@ public class BlueRightSideAutonomous extends LinearOpMode {
     public boolean isNone() { return numberOfNone >= numberOfOne && numberOfNone >= numberOfFour && !isStopRequested(); }
     public boolean isOne()  { return numberOfOne >= numberOfNone && numberOfOne >= numberOfFour && !isStopRequested(); }
     public boolean isFour() { return numberOfFour >= numberOfNone && numberOfFour >= numberOfOne && !isStopRequested(); }
-
-    public void shoot() {
-        double shootTime = sleepTimer.milliseconds();
-        while (opModeIsActive() && sleepTimer.milliseconds() - shootTime < 3000) {
-            robot.putLiftUp(0.2);
-            if (!robot.ringsIsNone.isPressed()) break;
-            robot.pusherCommand(TowerState.PUSHER_ON);
-            sleep(1000);
-            //robot.pusherCommand(TowerState.STOP);
-            //sleep(300);
-        }
-        robot.shooterCommand(TowerState.STOP);
-        robot.pusherCommand(TowerState.STOP);
-    }
-
-    public void shootPowerShot() {
-        robot.shooterCommand(TowerState.SHOOTER_ON);
-        sleep(500);
-        for (int i = 0; i < 3 && !isStopRequested(); i++) {
+    /*
+        public void shoot() {
             double shootTime = sleepTimer.milliseconds();
-            while (robot.isLiftUp.isPressed() && robot.ringsIsNone.isPressed() && sleepTimer.milliseconds() - shootTime < 2000) {
-                robot.putLiftUp(0.3);
+            while (opModeIsActive() && sleepTimer.milliseconds() - shootTime < 3000) {
+                //robot.putLiftUp(0.2);
+                if (!robot.ringsIsNone.isPressed()) break;
+                robot.pusherCommand(TowerState.PUSHER_ON);
+                sleep(1000);
+                //robot.pusherCommand(TowerState.STOP);
+                //sleep(300);
             }
-            robot.pusherCommand(TowerState.PUSHER_ON);
-
-            if (i != 2) {
-                robot.ringLift.setPower(-0.1);
-                sleep(100);
-                robot.ringLift.setPower(0);
-            }
-
-            sleep(1500);
+            robot.shooterCommand(TowerState.STOP);
             robot.pusherCommand(TowerState.STOP);
-            if (i != 2) turnToAngle(-SIGN_ANGLE * 5 * (i + 1));
         }
-        turnToAngle(0);
-        robot.shooterCommand(TowerState.STOP);
+        public void shootPowerShot() {
+            robot.shooterCommand(TowerState.SHOOTER_ON);
+            sleep(500);
+            for (int i = 0; i < 3 && !isStopRequested(); i++) {
+                double shootTime = sleepTimer.milliseconds();
+                while (robot.isLiftUp.isPressed() && robot.ringsIsNone.isPressed() && sleepTimer.milliseconds() - shootTime < 2000) {
+                    //robot.putLiftUp(0.3);
+                }
+                robot.pusherCommand(TowerState.PUSHER_ON);
+
+                if (i != 2) {
+                    robot.ringLift.setPower(-0.1);
+                    sleep(100);
+                    robot.ringLift.setPower(0);
+                }
+
+                sleep(1500);
+                robot.pusherCommand(TowerState.STOP);
+                if (i != 2) turnToAngle(-SIGN_ANGLE * 5 * (i + 1));
+            }
+            turnToAngle(0);
+            robot.shooterCommand(TowerState.STOP);
+        }
+    */
+    public void shootNew() {
+        robot.shooterCommand(TowerState.SHOOTER_ON);
+        sleep(1000);
+        for (int i = 0; i < 3; i++) {
+            robot.pusherCommand(Hardware.PusherState.PUSHER_ON);
+            robot.pusherCommand(Hardware.PusherState.PUSHER_BACK);
+            sleep(1500);
+        }
     }
 
     public void driveByInches(double speed, double x, double y) {
