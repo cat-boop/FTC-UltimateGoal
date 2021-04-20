@@ -66,6 +66,8 @@ public class TeleOperator extends LinearOpMode {
         robot.init(hardwareMap);
         gyroscope.init(hardwareMap);
 
+
+
         robot.manipulatorCommand(ManipulatorState.ASSEMBLED);
 
         FtcDashboard dashboard = FtcDashboard.getInstance();
@@ -150,7 +152,7 @@ public class TeleOperator extends LinearOpMode {
             robot.pusherCommand(Hardware.PusherState.PUSHER_BACK);
         }
 
-        if (gamepad2.b && canShoot == true) {
+        if (gamepad2.b && canShoot == true && shooterTimer.milliseconds() >DEBOUNCE_TIME) {
             switch (towerState) {
                 case STOP:
                     towerState = TowerState.SHOOTER_ON;
@@ -159,6 +161,7 @@ public class TeleOperator extends LinearOpMode {
                     towerState = TowerState.STOP;
                     break;
             }
+            shooterTimer.reset();
         }
         robot.shooterCommand(towerState);
         robot.clawCommand(clawState);

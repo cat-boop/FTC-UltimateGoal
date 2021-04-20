@@ -19,31 +19,32 @@ public class Hardware {
 
     public static Map<String, DcMotor> encoders = new HashMap<>();
 
-    private final double TOWER_ANGLE_MAX = 1;
+    private final double TOWER_ANGLE_MAX = 0.4, TOWER_ANGLE_MIN = 1, POSISHION_TO_SHOOT = 0.8;//need to be corrected
+
     //private final double RING_PUSHER_STOP = 0.5, RING_PUSHER_MOVE = 1;
     //private final double LIFT_DOOR_LEFT_OPEN = 0.6, LIFT_DOOR_LEFT_CLOSE = 0.46;
     //private final double LIFT_DOOR_RIGHT_OPEN = 0.65, LIFT_DOOR_RIGHT_CLOSE = 0.75;
     private final double RING_PUSHER_ON = 0.69 ,RING_PUSHER_BACK = 0.39;
 
-    public double getMinTowerAngle() { return 0.5; }
+    public double getMinTowerAngle() { return TOWER_ANGLE_MIN; }
     public double getMaxTowerAngle() { return TOWER_ANGLE_MAX; }
 
     public boolean toshoot = true;
 
-    public Servo manipulatorReturner = null;
+    public Servo manipulatorReturner = null; // 1 Cont
 
-    public Servo ringPusher = null;
+    public Servo ringPusher = null;// 4 ex
 
     //public Servo liftDoorLeft = null;
     //public Servo liftDoorRight = null;
 
-    public Servo ringPusherLeft = null;  // 1 control hub
-    public Servo ringPusherRight = null; // 2 control hub
+    //public Servo ringPusherLeft = null;  // 1 control hub
+    //public Servo ringPusherRight = null; // 2 control hub
 
-    public Servo servoClawLeft = null; // 0 expansion hub
-    public Servo servoClawRight = null; // 1 expansion hub
+    public Servo servoClawLeft = null; // 3 Ex hub
+    public Servo servoClawRight = null; // 4 ex hub
 
-    public Servo towerAngle = null;
+    public Servo towerAngle = null; //5 Ex hub
 
     public DcMotor manipulator = null;
 
@@ -82,7 +83,7 @@ public class Hardware {
         manipulator = hardwareMap.get(DcMotor.class, "manipulator");
 
         //servo's
-        manipulatorReturner = hardwareMap.get(Servo.class, "manipulatorReturner");
+        //manipulatorReturner = hardwareMap.get(Servo.class, "manipulatorReturner");
 
         //liftDoorLeft = hardwareMap.get(Servo.class, "liftDoorLeft");
         //liftDoorRight = hardwareMap.get(Servo.class, "liftDoorRight");
@@ -116,6 +117,7 @@ public class Hardware {
         //motor mode's
         rightRear.setDirection(DcMotorSimple.Direction.REVERSE);
         rightFront.setDirection(DcMotorSimple.Direction.REVERSE);
+        shooter.setDirection(DcMotorSimple.Direction.REVERSE);
 
         leftFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         leftRear.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -127,10 +129,10 @@ public class Hardware {
         shooter.setVelocityPIDFCoefficients(kP, kI, kD, kF);
 
         //encoders initialization
-        encoders.put("leftEncoder", leftRear);
-        encoders.put("rightEncoder", manipulator);
-        encoders.put("encoder", rightRear);
-        encoders.put("wobble", manipulator);
+        encoders.put("leftEncoder", leftRear); //2 E
+        encoders.put("rightEncoder", leftFront); //1 E
+        encoders.put("encoder", rightRear); //3 E
+        encoders.put("wobble", manipulator); //0 C
 
         for (DcMotor dcMotor : encoders.values()) {
             dcMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -228,10 +230,15 @@ public class Hardware {
         PUSHER_ON
     }
 
+    public enum AngleState {
+        TOSHOOT,
+        TOINTAKE
+    }
+
     public void shooterCommand(TowerState towerState) {
         if (towerState == TowerState.STOP) shooter.setVelocity(0);
 
-        if (towerState == TowerState.SHOOTER_ON) shooter.setVelocity(2400);
+        if (towerState == TowerState.SHOOTER_ON) shooter.setVelocity(3000);
     }
 
     public void pusherCommand(PusherState pusherState) {
@@ -240,6 +247,15 @@ public class Hardware {
         }
         if(pusherState == PusherState.PUSHER_BACK){
             ringPusher.setPosition(RING_PUSHER_BACK);
+        }
+    }
+
+    public void shooterAngleCommand(AngleState angleState){
+        if(angleState == AngleState.TOINTAKE){
+            towerAngle.setPosition(TOWER_ANGLE_MIN);
+        }
+        if(angleState == AngleState.TOSHOOT){
+            towerAngle.setPosition(POSISHION_TO_SHOOT);
         }
     }
 /*
