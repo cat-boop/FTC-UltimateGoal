@@ -185,26 +185,6 @@ public class RedRightSideAutonomous extends LinearOpMode {
     public boolean isOne()  { return numberOfOne >= numberOfNone && numberOfOne >= numberOfFour; }
     public boolean isFour() { return numberOfFour >= numberOfNone && numberOfFour >= numberOfOne; }
 
-    //public void shoot() {
-    // for (int i = 0; i < 3 && !isStopRequested(); i++) {
-    //  double shootTime = sleepTimer.milliseconds();
-    //while (true) {
-    //robot.putLiftUp(0.3);
-    //  }
-    //robot.pusherCommand(TowerState.PUSHER_ON);
-
-    //  if (i != 2) {
-    //     robot.ringLift.setPower(-0.1);
-    //   sleep(100);
-    //  robot.ringLift.setPower(0);
-    //  }
-    //  sleep(1500);
-
-    //robot.pusherCommand(TowerState.STOP);
-    //   }
-    // robot.shooterCommand(TowerState.STOP);
-    // }
-
     public void shootPowerShots(float firstAngle, float secondAngle, float thirdAngle ){
 
         robot.shooterCommand(TowerState.SHOOTER_ON);
@@ -226,7 +206,7 @@ public class RedRightSideAutonomous extends LinearOpMode {
 
     }
 
-    public void shootNew(){
+    public void shoot(){
         robot.shooterCommand(TowerState.SHOOTER_ON);
         sleep(1000);
         for(int i=0; i<3; i++){
@@ -236,7 +216,7 @@ public class RedRightSideAutonomous extends LinearOpMode {
         }
     }
 
-    public void intakeRIngs(){
+    public void intakeRings(){
 
     }
 
@@ -323,6 +303,6 @@ public class RedRightSideAutonomous extends LinearOpMode {
     }
 
     public void regulateWobble() {
-        robot.manipulator.setPower(wobblePID.apply(Objects.requireNonNull(encoders.get("wobble")).getCurrentPosition() - wobblePosition));
+        robot.manipulator.setPower(-wobblePID.apply(Objects.requireNonNull(encoders.get("wobble")).getCurrentPosition() - wobblePosition));
     }
 }

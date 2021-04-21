@@ -286,7 +286,7 @@ public class BlueRightSideAutonomous extends LinearOpMode {
     }
 
     public void regulateWobble() {
-        robot.manipulator.setPower(wobblePID.apply(Objects.requireNonNull(encoders.get("wobble")).getCurrentPosition() - wobblePosition));
+        robot.manipulator.setPower(-wobblePID.apply(Objects.requireNonNull(encoders.get("wobble")).getCurrentPosition() - wobblePosition));
     }
 }
 
