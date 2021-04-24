@@ -78,9 +78,10 @@ public class BlueRightSideAutonomous extends LinearOpMode {
         robot.clawCommand(Claw.CLOSE);
         sleep(500);
 
-        wobblePosition = 60;
-        robot.shooterCommand(TowerState.SHOOTER_ON);
-        driveByInches(DRIVE_SPEED, -SIGN_X * 10, 55 - 2);
+        wobblePosition = 0;
+
+        driveByInches(DRIVE_SPEED, -SIGN_X * 10, 55);
+        turnToAngle( -7);
 
         //shootPowerShot();
 
@@ -132,17 +133,25 @@ public class BlueRightSideAutonomous extends LinearOpMode {
     }
 
     public void returner() {
-        robot.manipulatorCommand(ManipulatorState.ASSEMBLED);
-        sleep(500);
-
         double wobbleTime = wobbleTimer.milliseconds();
-        while (wobbleTimer.milliseconds() - wobbleTime < 1000 && !isStopRequested()) robot.manipulator.setPower(0.8);
+
+        while (wobbleTimer.milliseconds() - wobbleTime < 800 && opModeIsActive()) robot.manipulator.setPower(-0.5);
+        robot.manipulator.setPower(0);
+
+        robot.manipulatorCommand(ManipulatorState.ASSEMBLED);
+        sleep(800);
+
+        wobbleTimer.reset();
+        double wobbleTime2 = wobbleTimer.milliseconds();
+
+        while (wobbleTimer.milliseconds() - wobbleTime2 < 500 && opModeIsActive()) robot.manipulator.setPower(0.4);
         robot.manipulator.setPower(0);
 
         sleep(500);
 
         Objects.requireNonNull(encoders.get("wobble")).setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         Objects.requireNonNull(encoders.get("wobble")).setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
     }
 
     public void sleep(int milliseconds) {
@@ -155,44 +164,19 @@ public class BlueRightSideAutonomous extends LinearOpMode {
     public boolean isNone() { return numberOfNone >= numberOfOne && numberOfNone >= numberOfFour && !isStopRequested(); }
     public boolean isOne()  { return numberOfOne >= numberOfNone && numberOfOne >= numberOfFour && !isStopRequested(); }
     public boolean isFour() { return numberOfFour >= numberOfNone && numberOfFour >= numberOfOne && !isStopRequested(); }
-    /*
-        public void shoot() {
-            double shootTime = sleepTimer.milliseconds();
-            while (opModeIsActive() && sleepTimer.milliseconds() - shootTime < 3000) {
-                //robot.putLiftUp(0.2);
-                if (!robot.ringsIsNone.isPressed()) break;
-                robot.pusherCommand(TowerState.PUSHER_ON);
-                sleep(1000);
-                //robot.pusherCommand(TowerState.STOP);
-                //sleep(300);
-            }
-            robot.shooterCommand(TowerState.STOP);
-            robot.pusherCommand(TowerState.STOP);
-        }
-        public void shootPowerShot() {
-            robot.shooterCommand(TowerState.SHOOTER_ON);
-            sleep(500);
-            for (int i = 0; i < 3 && !isStopRequested(); i++) {
-                double shootTime = sleepTimer.milliseconds();
-                while (robot.isLiftUp.isPressed() && robot.ringsIsNone.isPressed() && sleepTimer.milliseconds() - shootTime < 2000) {
-                    //robot.putLiftUp(0.3);
-                }
-                robot.pusherCommand(TowerState.PUSHER_ON);
 
-                if (i != 2) {
-                    robot.ringLift.setPower(-0.1);
-                    sleep(100);
-                    robot.ringLift.setPower(0);
-                }
-
-                sleep(1500);
-                robot.pusherCommand(TowerState.STOP);
-                if (i != 2) turnToAngle(-SIGN_ANGLE * 5 * (i + 1));
-            }
-            turnToAngle(0);
-            robot.shooterCommand(TowerState.STOP);
+    public void shoot() {
+        robot.shooterCommand(TowerState.SHOOTER_ON);
+        sleep(1000);
+        for (int i = 0; i < 3; i++) {
+            robot.pusherCommand(Hardware.PusherState.PUSHER_ON);
+            sleep(200);
+            robot.pusherCommand(Hardware.PusherState.PUSHER_BACK);
+            sleep(1500);
         }
-    */
+    }
+
+
     public void shootNew() {
         robot.shooterCommand(TowerState.SHOOTER_ON);
         sleep(1000);
@@ -255,11 +239,11 @@ public class BlueRightSideAutonomous extends LinearOpMode {
         double currentAngle = gyroscope.getAngle();
         ElapsedTime timeAtTarget = new ElapsedTime();
 
-        while ( (Math.abs(gyroscope.format(targetAngle, currentAngle)) > 2 || timeAtTarget.seconds() < 0.5) && !isStopRequested()) {
+        while ( (Math.abs(gyroscope.format(targetAngle, currentAngle)) > 5 || timeAtTarget.seconds() < 0.3) && opModeIsActive()) {
 
             regulateWobble();
 
-            if (Math.abs(gyroscope.format(targetAngle, currentAngle)) > 4) {
+            if (Math.abs(gyroscope.format(targetAngle, currentAngle)) > 7) {
                 timeAtTarget.reset();
             }
 

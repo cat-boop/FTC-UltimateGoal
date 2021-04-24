@@ -18,11 +18,16 @@ public class Hardware {
 
     public static Map<String, DcMotor> encoders = new HashMap<>();
 
-    private final double TOWER_ANGLE_MAX = 0.4, TOWER_ANGLE_MIN = 0, POSITION_TO_SHOOT = 0.8;//need to be corrected
-    private final double RING_PUSHER_ON = 0.69 ,RING_PUSHER_BACK = 0.39;
+    private final double TOWER_ANGLE_MAX = 0.6, TOWER_ANGLE_MIN = 0.1, POSITION_TO_SHOOT = 0.8;//need to be corrected
+    private final double RING_PUSHER_ON = 0.75 ,RING_PUSHER_BACK = 0.39;
+    static final double SIGN_ANGLE = -1;
+    private  final double SHOOTER_VELOCITY_MIN = 2000, SHOOTER_VELOCITY_MAX = 2500;
 
     public double getMinTowerAngle() { return TOWER_ANGLE_MIN; }
     public double getMaxTowerAngle() { return TOWER_ANGLE_MAX; }
+
+    public double getMinVelocity() { return SHOOTER_VELOCITY_MIN; }
+    public double getMaxVelocity() { return SHOOTER_VELOCITY_MAX; }
 
     public Servo manipulatorReturner = null; // 1 Cont
 
@@ -83,7 +88,6 @@ public class Hardware {
         //motor mode's
         rightFront.setDirection(DcMotorSimple.Direction.REVERSE);
         rightRear.setDirection(DcMotorSimple.Direction.REVERSE);
-        shooter.setDirection(DcMotorSimple.Direction.REVERSE);
 
         leftFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         leftRear.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -96,8 +100,8 @@ public class Hardware {
         shooter.setVelocityPIDFCoefficients(kP, kI, kD, kF);
 
         //encoders initialization
-        encoders.put("leftEncoder", leftRear); //0E
-        encoders.put("rightEncoder", leftFront); //1E
+        encoders.put("leftEncoder", leftFront); //0E
+        encoders.put("rightEncoder", leftRear); //1E
         encoders.put("encoder", rightRear); // 1C
         encoders.put("wobble", manipulator);
 
@@ -173,6 +177,8 @@ public class Hardware {
     public enum TowerState {
         STOP,
         SHOOTER_ON,
+        SHOOTER_ON_HIGHT,
+        SHOOTER_ON_LOW
     }
 
     public enum PusherState {
@@ -186,8 +192,10 @@ public class Hardware {
     }
 
     public void shooterCommand(TowerState towerState) {
-        if (towerState == TowerState.STOP) shooter.setVelocity(0);
-        if (towerState == TowerState.SHOOTER_ON) shooter.setVelocity(6000);
+        if (towerState == TowerState.STOP) shooter.setPower(0);
+        if(towerState == TowerState.SHOOTER_ON_LOW) shooter.setVelocity(2200);
+        if (towerState == TowerState.SHOOTER_ON) shooter.setVelocity(2250);
+        if(towerState == TowerState.SHOOTER_ON_HIGHT) shooter.setVelocity(2300);
     }
 
     public void pusherCommand(PusherState pusherState) {
@@ -198,6 +206,7 @@ public class Hardware {
             ringPusher.setPosition(RING_PUSHER_BACK);
         }
     }
+
 
     public void shooterAngleCommand(AngleState angleState){
         if(angleState == AngleState.TO_INTAKE){

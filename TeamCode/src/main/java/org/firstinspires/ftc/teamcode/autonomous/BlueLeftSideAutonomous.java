@@ -89,6 +89,8 @@ public class BlueLeftSideAutonomous extends LinearOpMode {
         telemetry.addData("Status", "Initialized");    //
         telemetry.update();
 
+        robot.towerAngle.setPosition(0);
+
         waitForStart();
 
         sleepTimer.reset();
@@ -101,7 +103,6 @@ public class BlueLeftSideAutonomous extends LinearOpMode {
             if (number == 4) numberOfFour++;
         }
         camera.stop();
-
         returner();
 
         robot.clawCommand(Claw.CLOSE);
@@ -109,27 +110,24 @@ public class BlueLeftSideAutonomous extends LinearOpMode {
 
         wobblePosition = 0;
 
-        robot.shooterCommand(TowerState.SHOOTER_ON);
 
-        driveByInches(DRIVE_SPEED, 0, 50);
-        //turnToAngle(SIGN_ANGLE * 5);
+        driveByInches(DRIVE_SPEED, 16, 50);
 
-        //shoot();
+        turnToAngle(-15);
 
-        driveByInches(DRIVE_SPEED, 0, -12);
-
-        sleep(8000);
+        shoot();
 
         if (isNone()) {
-            turnToAngle(SIGN_ANGLE * 15);
+            wobblePosition = 50;
+            turnToAngle( SIGN_ANGLE * 30);
             driveByInches(DRIVE_SPEED, 0, 16);
 
             robot.clawCommand(Claw.OPEN);
             sleep(300);
 
-            driveByInches(DRIVE_SPEED, 0, -2);
+            driveByInches(DRIVE_SPEED, 0, -5);
             turnToAngle(0);
-            driveByInches(DRIVE_SPEED, -SIGN_X * 15, 0);
+            driveByInches(DRIVE_SPEED, 15, 0);
             driveByInches(DRIVE_SPEED, 0, 15);
         }
 
@@ -137,36 +135,46 @@ public class BlueLeftSideAutonomous extends LinearOpMode {
             turnToAngle(0);
 
             wobblePosition = 60;
-            driveByInches(DRIVE_SPEED, -SIGN_X * 5, 40);
+            driveByInches(DRIVE_SPEED, 0, 20);
+            driveByInches(DRIVE_SPEED, -16,0);
 
             robot.clawCommand(Claw.OPEN);
             sleep(300);
 
-            driveByInches(DRIVE_SPEED, 0, -6);
+            driveByInches(DRIVE_SPEED, 0, -7);
+
+            driveByInches(DRIVE_SPEED, 16,0);
+            driveByInches(DRIVE_SPEED, 0, -18);
         }
 
         if (isFour()) {
             wobblePosition = 50;
-            turnToAngle(SIGN_ANGLE * 10);
-            driveByInches(DRIVE_SPEED, 0, 72);
+            turnToAngle(0);
+            driveByInches(DRIVE_SPEED, 0, 60);
 
-            turnToAngle(SIGN_ANGLE * 30);
+            turnToAngle(30);
             robot.clawCommand(Claw.OPEN);
             sleep(300);
 
-            driveByInches(DRIVE_SPEED, 0, -2);
+            driveByInches(DRIVE_SPEED, 0, -7);
             turnToAngle(0);
-            driveByInches(DRIVE_SPEED, -SIGN_X * 10, 0);
-            driveByInches(DRIVE_SPEED, 0, -30);
+            driveByInches(DRIVE_SPEED, 0, -50);
         }
     }
 
     public void returner() {
-        robot.manipulatorCommand(ManipulatorState.ASSEMBLED);
-        sleep(500);
-
         double wobbleTime = wobbleTimer.milliseconds();
-        while (wobbleTimer.milliseconds() - wobbleTime < 1000 && opModeIsActive()) robot.manipulator.setPower(0.6);
+
+        while (wobbleTimer.milliseconds() - wobbleTime < 800 && opModeIsActive()) robot.manipulator.setPower(-0.5);
+        robot.manipulator.setPower(0);
+
+        robot.manipulatorCommand(ManipulatorState.ASSEMBLED);
+        sleep(800);
+
+        wobbleTimer.reset();
+        double wobbleTime2 = wobbleTimer.milliseconds();
+
+        while (wobbleTimer.milliseconds() - wobbleTime2 < 500 && opModeIsActive()) robot.manipulator.setPower(0.4);
         robot.manipulator.setPower(0);
 
         sleep(500);
@@ -174,6 +182,7 @@ public class BlueLeftSideAutonomous extends LinearOpMode {
         Objects.requireNonNull(encoders.get("wobble")).setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         Objects.requireNonNull(encoders.get("wobble")).setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
     }
+
 
     public void sleep(int milliseconds) {
         double currentTime = sleepTimer.milliseconds();
@@ -184,38 +193,18 @@ public class BlueLeftSideAutonomous extends LinearOpMode {
     public boolean isOne()  { return numberOfOne >= numberOfNone && numberOfOne >= numberOfFour; }
     public boolean isFour() { return numberOfFour >= numberOfNone && numberOfFour >= numberOfOne; }
 
-    /*
-        public void shoot() {
-            for (int i = 0; i < 3 && !isStopRequested(); i++) {
-                double shootTime = sleepTimer.milliseconds();
-                while (robot.isLiftUp.isPressed() && robot.ringsIsNone.isPressed() && sleepTimer.milliseconds() - shootTime < 2000) {
-                    //robot.putLiftUp(0.3);
-                }
-                robot.pusherCommand(TowerState.PUSHER_ON);
 
-                if (i != 2) {
-                    robot.ringLift.setPower(-0.1);
-                    sleep(100);
-                    robot.ringLift.setPower(0);
-                }
-                sleep(1500);
-
-                robot.pusherCommand(TowerState.STOP);
-            }
-            robot.shooterCommand(TowerState.STOP);
-        }
-
-
-     */
-    public void shootNew() {
+    public void shoot() {
         robot.shooterCommand(TowerState.SHOOTER_ON);
         sleep(1000);
-        for (int i = 0; i < 3; i++) {
+        for(int i=0; i<3; i++){
             robot.pusherCommand(Hardware.PusherState.PUSHER_ON);
+            sleep(200);
             robot.pusherCommand(Hardware.PusherState.PUSHER_BACK);
             sleep(1500);
         }
     }
+
 
     public void driveByInches(double speed, double x, double y) {
         int currentPositionX = Objects.requireNonNull(encoders.get("encoder")).getCurrentPosition();
@@ -269,11 +258,11 @@ public class BlueLeftSideAutonomous extends LinearOpMode {
         double currentAngle = gyroscope.getAngle();
         ElapsedTime timeAtTarget = new ElapsedTime();
 
-        while ( (Math.abs(gyroscope.format(targetAngle, currentAngle)) > 2 || timeAtTarget.seconds() < 0.5) && opModeIsActive()) {
+        while ( (Math.abs(gyroscope.format(targetAngle, currentAngle)) > 5 || timeAtTarget.seconds() < 0.3) && opModeIsActive()) {
 
             regulateWobble();
 
-            if (Math.abs(gyroscope.format(targetAngle, currentAngle)) > 4) {
+            if (Math.abs(gyroscope.format(targetAngle, currentAngle)) > 7) {
                 timeAtTarget.reset();
             }
 
