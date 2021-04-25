@@ -131,36 +131,33 @@ public class TeleOperator extends LinearOpMode {
 
     public void secondGamepad() { //intake, shooter, pusher
 
-        /*
+
         if (gamepad2.dpad_left && towerAngleTimer.milliseconds() > DEBOUNCE_TIME) {
             shooterLiftPosition = Math.max(robot.getMinTowerAngle(), shooterLiftPosition - INCREMENT);
-            towerAngleTimer.reset();
-            towerAngleTimer.reset();
-        }
+             towerAngleTimer.reset();
+             towerAngleTimer.reset();
+         }
 
         if (gamepad2.dpad_right && towerAngleTimer.milliseconds() > DEBOUNCE_TIME) {
             shooterLiftPosition = Math.min(robot.getMaxTowerAngle(), shooterLiftPosition + INCREMENT);
             towerAngleTimer.reset();
         }
 
-         */
-
-                if (gamepad2.dpad_up && towerAngleTimer.milliseconds() > DEBOUNCE_TIME) {
-            //shooterLiftPosition = Math.max(robot.getMinTowerAngle(), shooterLiftPosition - INCREMENT);
-            //towerAngleTimer.reset();
-            robot.towerAngle.setPosition(0);
+        if (gamepad2.dpad_up && towerAngleTimer.milliseconds() > DEBOUNCE_TIME) {
+            shooterLiftPosition = 0;
             canIntake = false;
             towerAngleTimer.reset();
+
         }
 
         if (gamepad2.dpad_down && towerAngleTimer.milliseconds() > DEBOUNCE_TIME) {
             //shooterLiftPosition = Math.min(robot.getMaxTowerAngle(), shooterLiftPosition + INCREMENT);
             //towerAngleTimer.reset();
-            robot.towerAngle.setPosition(0.6);
+            shooterLiftPosition = 0.6;
             canIntake = true;
             towerAngleTimer.reset();
         }
-
+        robot.towerAngle.setPosition(shooterLiftPosition);
 
         if (gamepad2.b ){
             robot.pusherCommand(Hardware.PusherState.PUSHER_ON);
@@ -176,6 +173,20 @@ public class TeleOperator extends LinearOpMode {
                     canMovePusher = true;
                     break;
                 case SHOOTER_ON:
+                    towerState = TowerState.STOP;
+                    canMovePusher = false;
+                    break;
+            }
+            shooterTimer.reset();
+        }
+
+        if (gamepad2.x && shooterTimer.milliseconds() > DEBOUNCE_TIME) {
+            switch (towerState) {
+                case STOP:
+                    towerState = TowerState.SHOOTER_ON_LOW;
+                    canMovePusher = true;
+                    break;
+                case SHOOTER_ON_LOW:
                     towerState = TowerState.STOP;
                     canMovePusher = false;
                     break;

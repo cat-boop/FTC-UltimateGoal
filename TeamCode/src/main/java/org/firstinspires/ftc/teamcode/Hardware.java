@@ -193,7 +193,8 @@ public class Hardware {
 
     public void shooterCommand(TowerState towerState) {
         if (towerState == TowerState.STOP) shooter.setPower(0);
-        if (towerState == TowerState.SHOOTER_ON) shooter.setVelocity(2300);
+        if (towerState == TowerState.SHOOTER_ON) shooter.setVelocity(2350);
+        if(towerState == TowerState.SHOOTER_ON_LOW) shooter.setVelocity(2200);
     }
 
     public void pusherCommand(PusherState pusherState) {
