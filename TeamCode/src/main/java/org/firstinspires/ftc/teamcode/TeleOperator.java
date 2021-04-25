@@ -133,6 +133,19 @@ public class TeleOperator extends LinearOpMode {
 
         /*
         if (gamepad2.dpad_left && towerAngleTimer.milliseconds() > DEBOUNCE_TIME) {
+            shooterLiftPosition = Math.max(robot.getMinTowerAngle(), shooterLiftPosition - INCREMENT);
+            towerAngleTimer.reset();
+            towerAngleTimer.reset();
+        }
+
+        if (gamepad2.dpad_right && towerAngleTimer.milliseconds() > DEBOUNCE_TIME) {
+            shooterLiftPosition = Math.min(robot.getMaxTowerAngle(), shooterLiftPosition + INCREMENT);
+            towerAngleTimer.reset();
+        }
+
+         */
+
+                if (gamepad2.dpad_up && towerAngleTimer.milliseconds() > DEBOUNCE_TIME) {
             //shooterLiftPosition = Math.max(robot.getMinTowerAngle(), shooterLiftPosition - INCREMENT);
             //towerAngleTimer.reset();
             robot.towerAngle.setPosition(0);
@@ -140,7 +153,7 @@ public class TeleOperator extends LinearOpMode {
             towerAngleTimer.reset();
         }
 
-        if (gamepad2.dpad_right && towerAngleTimer.milliseconds() > DEBOUNCE_TIME) {
+        if (gamepad2.dpad_down && towerAngleTimer.milliseconds() > DEBOUNCE_TIME) {
             //shooterLiftPosition = Math.min(robot.getMaxTowerAngle(), shooterLiftPosition + INCREMENT);
             //towerAngleTimer.reset();
             robot.towerAngle.setPosition(0.6);
@@ -149,18 +162,6 @@ public class TeleOperator extends LinearOpMode {
         }
 
 
-        if(gamepad2.dpad_left&& towerAngleTimer2.milliseconds() > DEBOUNCE_TIME){//вниз
-            robot.towerAngle.setPosition(0.6);
-            towerAngleTimer2.reset();
-        }
-
-        if(gamepad2.dpad_right && towerAngleTimer2.milliseconds() > DEBOUNCE_TIME){//вверх
-            robot.towerAngle.setPosition(0);
-            towerAngleTimer2.reset();
-        }
-
-
-         */
         if (gamepad2.b ){
             robot.pusherCommand(Hardware.PusherState.PUSHER_ON);
             sleep(150);
@@ -195,22 +196,6 @@ public class TeleOperator extends LinearOpMode {
             robot.intake.setPower(-gamepad2.left_trigger);
         }
 
-
-        if (gamepad2.dpad_up && towerAngleTimer.milliseconds() > DEBOUNCE_TIME) {
-            //shooterLiftPosition = Math.max(robot.getMinTowerAngle(), shooterLiftPosition - INCREMENT);
-            //towerAngleTimer.reset();
-            robot.towerAngle.setPosition(0);
-            canIntake = false;
-            towerAngleTimer.reset();
-        }
-
-        if (gamepad2.dpad_down && towerAngleTimer.milliseconds() > DEBOUNCE_TIME) {
-            //shooterLiftPosition = Math.min(robot.getMaxTowerAngle(), shooterLiftPosition + INCREMENT);
-            //towerAngleTimer.reset();
-            robot.towerAngle.setPosition(0.6);
-            canIntake = true;
-            towerAngleTimer.reset();
-        }
        //  robot.towerAngle.setPosition(shooterLiftPosition);
 
     }
