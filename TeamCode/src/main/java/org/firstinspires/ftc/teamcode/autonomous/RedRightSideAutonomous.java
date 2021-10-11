@@ -230,20 +230,16 @@ public class RedRightSideAutonomous extends LinearOpMode {
         }
     }
 
-    public void intakeRings(){
-
-    }
-
     public void driveByInches(double speed, double x, double y) {
         int currentPositionX = Objects.requireNonNull(encoders.get("encoder")).getCurrentPosition();
 
         int currentLeftPosition = Objects.requireNonNull(encoders.get("leftEncoder")).getCurrentPosition();
-        //int currentRightPosition = Objects.requireNonNull(encoders.get("rightEncoder")).getCurrentPosition();
+        int currentRightPosition = Objects.requireNonNull(encoders.get("rightEncoder")).getCurrentPosition();
 
         int targetPositionX = Math.abs(currentPositionX + (int) (x * COUNTS_PER_INCH));
 
         int targetLeft  = Math.abs(currentLeftPosition + (int) (y * COUNTS_PER_INCH));
-        //int targetRight = Math.abs(currentRightPosition + (int) (y * COUNTS_PER_INCH));
+        int targetRight = Math.abs(currentRightPosition + (int) (y * COUNTS_PER_INCH));
 
         int signX = (x >= 0 ? 1 : -1);
         int signY = (y >= 0 ? 1 : -1);
@@ -252,14 +248,14 @@ public class RedRightSideAutonomous extends LinearOpMode {
 
         robot.setPower(speed * signY, 0, speed * signX);
 
-        while (opModeIsActive()) {
+        while (opModeIsActive()){
 
             regulateWobble();
 
             currentPositionX = Objects.requireNonNull(encoders.get("encoder")).getCurrentPosition();
 
             currentLeftPosition = Objects.requireNonNull(encoders.get("leftEncoder")).getCurrentPosition();
-            //currentRightPosition = Objects.requireNonNull(encoders.get("rightEncoder")).getCurrentPosition();
+            currentRightPosition = Objects.requireNonNull(encoders.get("rightEncoder")).getCurrentPosition();
 
             arriveToX = Math.abs(currentPositionX) >= targetPositionX;
             arriveToY = Math.abs(currentLeftPosition) >= targetLeft; //|| Math.abs(currentRightPosition) >= targetRight;
@@ -283,7 +279,7 @@ public class RedRightSideAutonomous extends LinearOpMode {
         robot.reset();
     }
 
-    public void turnToAngle(double targetAngle) {
+    public void turnToAngle(double targetAngle){
         angle = targetAngle;
 
         double currentAngle = gyroscope.getAngle();
@@ -293,7 +289,7 @@ public class RedRightSideAutonomous extends LinearOpMode {
 
             regulateWobble();
 
-            if (Math.abs(gyroscope.format(targetAngle, currentAngle)) > 7) {
+            if (Math.abs(gyroscope.format(targetAngle, currentAngle)) > 7){
                 timeAtTarget.reset();
             }
 
